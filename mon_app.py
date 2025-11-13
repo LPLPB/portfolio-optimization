@@ -9,7 +9,6 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Portfolio Optimizer", page_icon="📊", layout="wide")
 
 # --- 2. DICTIONNAIRE DE TRADUCTION (EN/FR) ---
-# J'ai fusionné ton dictionnaire avec le mien pour avoir toutes les clés
 TRANSLATIONS = {
     'en': {
         'title': "Portfolio Optimizer",
@@ -167,7 +166,6 @@ TRANSLATIONS = {
     }
 }
 
-# --- J'AI REMIS LA GRANDE LISTE DE TICKERS ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
     'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
@@ -339,7 +337,6 @@ elif st.session_state.step == 2:
 # CORPS PRINCIPAL
 # ---------------------------
 
-# --- J'AI REMIS LA PHOTO ET TON NOM ---
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     st.image(
@@ -378,7 +375,6 @@ except Exception as e:
     st.error(T['loading_error'].format(e=e))
     st.stop()
 
-# --- J'AI REMIS TOUS LES CALCULS (PORTFOLIO ACTUEL) ---
 current_return, current_risk, current_sharpe = None, None, None
 current_weights_np = None
 total_portfolio_value = 0
@@ -413,7 +409,6 @@ if use_current_portfolio and current_inputs:
     current_return = np.sum((log_ret.mean().values * current_weights_np) * 252)
     current_risk = np.sqrt(np.dot(current_weights_np.T, np.dot(log_ret.cov().values * 252, current_weights_np)))
     current_sharpe = current_return / current_risk if current_risk != 0 else 0
-# --- FIN DES CALCULS ---
 
 
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
@@ -423,7 +418,6 @@ max_sharpe_idx = np.argmax(all_sharpes)
 opt_weights = all_weights[max_sharpe_idx]
 opt_return, opt_vol, opt_sharpe = all_returns[max_sharpe_idx], all_vols[max_sharpe_idx], all_sharpes[max_sharpe_idx]
 
-# --- J'AI REMIS TOUT LE CONTENU CI-DESSOUS ---
 
 if use_current_portfolio and current_return is not None:
     st.header(T['current_analysis_header'])
@@ -470,9 +464,9 @@ if T['col_amount_optimal'] in weights_df.columns:
 st.dataframe(weights_df.set_index(T['col_action']).style.format(format_dict))
 
 fig_weights = px.bar(weights_df, x=T['col_action'], y=T['col_weight'],
-                     title=T['alloc_chart_title'],
-                     text=weights_df[T['col_weight']].apply(lambda x: f'{x:.2f}%')
-                    )
+                       title=T['alloc_chart_title'],
+                       text=weights_df[T['col_weight']].apply(lambda x: f'{x:.2f}%')
+                      )
 fig_weights.update_layout(template='plotly_dark')
 st.plotly_chart(fig_weights, use_container_width=True)
 
@@ -485,10 +479,10 @@ df_plot = pd.DataFrame({
     'Sharpe': all_sharpes
 })
 fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
-                 color_continuous_scale='RdYlGn',
-                 labels={'Sharpe': 'Ratio de Sharpe'},
-                 hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
-                )
+               color_continuous_scale='RdYlGn',
+               labels={'Sharpe': 'Ratio de Sharpe'},
+               hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
+              )
 fig_scatter.update_layout(
     title=T['frontier_chart_title'],
     xaxis_title=T['frontier_xaxis'],
@@ -549,7 +543,7 @@ with st.expander(T['extra_charts_header']):
 with st.expander(T['corr_header']):
     df_corr = log_ret[tickers].corr()
     fig_heatmap = px.imshow(df_corr, text_auto=True, color_continuous_scale='Mint',
-                            labels=dict(y=T['corr_company'], x=T['corr_company']))
+                             labels=dict(y=T['corr_company'], x=T['corr_company']))
     fig_heatmap.update_layout(template='plotly_dark')
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
