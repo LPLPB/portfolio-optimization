@@ -8,11 +8,7 @@ import plotly.graph_objects as go
 # ---------------------------
 # CONFIGURATION DE LA PAGE
 # ---------------------------
-st.set_page_config(
-    page_title="Portfolio Optimizer",
-    page_icon="📊",
-    layout="wide"
-)
+st.set_page_config(page_title="Portfolio Optimizer", page_icon="📊", layout="wide")
 
 # ---------------------------
 # TRADUCTIONS (EN & FR)
@@ -22,7 +18,6 @@ TRANSLATIONS = {
         'title': "Portfolio Optimizer",
         'subtitle': "Based on Modern Portfolio Theory (Markowitz)",
         'created_by': "Created by **Léo-Paul Laisne**",
-        'linkedin_profile': "LinkedIn Profile",
         'sidebar_header': "Optimization Parameters",
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
@@ -46,9 +41,6 @@ TRANSLATIONS = {
         'run_info': "Please select your assets in the sidebar and run the optimization.",
         'loading_data': "Loading data for {tickers}...",
         'loading_error': "Error loading data: {e}",
-        'input_error': "Error: The number of entries ({entries}) does not match the number of tickers ({tickers}).",
-        'value_error': "Your portfolio's total value is 0. Cannot calculate weights.",
-        'running_sim': "Running simulation for {num_ports} portfolios...",
         'optimal_header': "Optimized Portfolio Results",
         'optimal_subheader': "Optimal portfolio (best Sharpe Ratio) found from {num_ports} simulations.",
         'optimal_return': "Optimal Annual Return",
@@ -58,13 +50,11 @@ TRANSLATIONS = {
         'alloc_chart_title': "Allocation (Weights) in %",
         'frontier_chart_title': "Efficient Frontier",
         'legend_optimal': "Optimal Portfolio",
-        'run_info': "Please select your assets and run the optimization."
     },
     'fr': {
         'title': "Optimiseur de Portefeuille",
         'subtitle': "Basé sur la Théorie Moderne du Portefeuille (Markowitz)",
         'created_by': "Créé par **Léo-Paul Laisne**",
-        'linkedin_profile': "Profil LinkedIn",
         'sidebar_header': "Paramètres de l'Optimisation",
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
@@ -96,22 +86,16 @@ TRANSLATIONS = {
         'optimal_alloc_header': "Allocation du portefeuille optimal",
         'alloc_chart_title': "Répartition (poids en %)",
         'frontier_chart_title': "Frontière efficiente",
-        'legend_optimal': "Portefeuille optimal"
+        'legend_optimal': "Portefeuille optimal",
     }
 }
 
-# ---------------------------
-# TICKERS PRÉDÉFINIS
-# ---------------------------
 PREDEFINED_TICKERS = {
     "AAPL": "Apple", "MSFT": "Microsoft", "GOOGL": "Alphabet",
     "AMZN": "Amazon", "META": "Meta", "NVDA": "NVIDIA",
     "TSLA": "Tesla", "JPM": "JPMorgan", "V": "Visa", "PG": "Procter & Gamble"
 }
 
-# ---------------------------
-# SIMULATION
-# ---------------------------
 @st.cache_data
 def run_simulation(log_ret, num_ports, num_assets):
     all_weights = np.zeros((num_ports, num_assets))
@@ -157,7 +141,6 @@ if st.session_state.step == 1:
     add_button = st.sidebar.button(T['ticker_validate_button'])
     validate_all_button = st.sidebar.button(T['ticker_global_validate'])
 
-    # 🧩 Correction : le bouton Entrée valide SEULEMENT les tickers manuels
     if add_button and custom_tickers_string:
         custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
         new_list = sorted(list(set(st.session_state.locked_tickers + selected_tickers_multi + custom_tickers)))
@@ -191,6 +174,24 @@ elif st.session_state.step == 2:
         st.sidebar.subheader(T['sim_params_header'])
         period = st.text_input(T['period_label'], "504d")
         num_ports = st.slider(T['ports_label'], 1000, 20000, 10000, 1000)
+
+        # 🧩 Ajout des champs de saisie selon le mode choisi
+        if use_current_portfolio and input_mode:
+            st.sidebar.header(T['current_header'])
+            for ticker in st.session_state.locked_tickers:
+                if input_mode == T['mode_amount']:
+                    st.number_input(
+                        T['amount_label'].format(ticker=ticker),
+                        min_value=0.0, value=1000.0, step=10.0,
+                        key=f"amount_{ticker}"
+                    )
+                else:
+                    st.number_input(
+                        T['shares_label'].format(ticker=ticker),
+                        min_value=0.0, value=10.0, step=0.1,
+                        key=f"shares_{ticker}"
+                    )
+
         run_button = st.form_submit_button(T['run_button'])
         if run_button:
             st.session_state.run_simulation = True
@@ -206,11 +207,21 @@ if st.session_state.run_simulation:
     st.info(T['loading_data'].format(tickers=", ".join(tickers)))
     try:
         data = yf.download(tickers, period=period)
-        # 🩹 Correction du bug 'Adj Close' : gestion cas 1 ticker
+
+        # ✅ Correction complète du bug 'Adj Close'
         if isinstance(data.columns, pd.MultiIndex):
-            data = data['Adj Close']
+            if 'Adj Close' in data.columns.get_level_values(0):
+                data = data['Adj Close']
+            else:
+                data = data['Close']
         else:
-            data = data.rename('Adj Close').to_frame()
+            if 'Adj Close' in data.columns:
+                data = data['Adj Close']
+            elif 'Close' in data.columns:
+                data = data['Close']
+            else:
+                raise ValueError("No 'Close' or 'Adj Close' column found in data")
+
         log_ret = np.log(data / data.shift(1)).dropna()
     except Exception as e:
         st.error(T['loading_error'].format(e=str(e)))
@@ -239,6 +250,5 @@ if st.session_state.run_simulation:
     frontier_fig.add_trace(go.Scatter(x=[opt_vol], y=[opt_return], mode='markers',
                                       marker=dict(color='white', size=15), name=T['legend_optimal']))
     st.plotly_chart(frontier_fig, use_container_width=True)
-
 else:
     st.info(T['run_info'])
