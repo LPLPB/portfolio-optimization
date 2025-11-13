@@ -35,7 +35,7 @@ TRANSLATIONS = {
         'amount_label': "Enter amount for {ticker}",
         'shares_label': "Number of shares for {ticker}",
         'run_button': "Run Optimization",
-        'run_info': "Please select your assets and click 'Run Optimization' in the sidebar.",
+        'run_info': "Please select your assets, fill the form, and click 'Run Optimization'.",
         'loading_data': "Loading data for {tickers}...",
         'loading_error': "Error loading data: {e}",
         'input_error': "Error: The number of entries ({entries}) does not match the number of tickers ({tickers}).",
@@ -108,7 +108,7 @@ TRANSLATIONS = {
         'amount_label': "Montant pour {ticker}",
         'shares_label': "Nombre d'actions {ticker}",
         'run_button': "Lancer l'Optimisation",
-        'run_info': "Veuillez sélectionner vos actions et cliquer sur 'Lancer l'Optimisation' dans la barre latérale.",
+        'run_info': "Veuillez sélectionner vos actifs, remplir le formulaire, et cliquer sur 'Lancer l'Optimisation'.",
         'loading_data': "Téléchargement des données pour {tickers}...",
         'loading_error': "Erreur lors du téléchargement des données : {e}",
         'input_error': "Erreur : Le nombre d'entrées ({entries}) ne correspond pas au nombre de tickers ({tickers}).",
@@ -165,86 +165,37 @@ TRANSLATIONS = {
 # --- NOUVEAU : BASE DE DONNÉES DE TICKERS ÉTENDUE ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
-    'SPY': 'ETF - S&P 500 (SPDR)',
-    'QQQ': 'ETF - Nasdaq 100 (Invesco)',
-    'DIA': 'ETF - Dow Jones (SPDR)',
-    'URTH': 'ETF - MSCI World (iShares)',
-    'EEM': 'ETF - MSCI Emerging Markets (iShares)',
-    'EWJ': 'ETF - MSCI Japan (iShares)',
-    'EWG': 'ETF - MSCI Germany (iShares)',
-    'EWU': 'ETF - MSCI UK (iShares)',
-    'GLD': 'ETF - Or (SPDR Gold Shares)',
-    'SLV': 'ETF - Argent (iShares Silver Trust)',
-    
+    'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
+    'URTH': 'ETF - MSCI World (iShares)', 'EEM': 'ETF - MSCI Emerging Markets (iShares)',
+    'EWJ': 'ETF - MSCI Japan (iShares)', 'EWG': 'ETF - MSCI Germany (iShares)',
+    'EWU': 'ETF - MSCI UK (iShares)', 'GLD': 'ETF - Or (SPDR Gold Shares)', 'SLV': 'ETF - Argent (iShares Silver Trust)',
     # US Tech
-    'AAPL': 'Apple (NASDAQ)',
-    'MSFT': 'Microsoft (NASDAQ)',
-    'GOOG': 'Alphabet (Google) (NASDAQ)',
-    'AMZN': 'Amazon (NASDAQ)',
-    'TSLA': 'Tesla (NASDAQ)',
-    'NVDA': 'NVIDIA (NASDAQ)',
-    'META': 'Meta Platforms (NASDAQ)',
-    'ORCL': 'Oracle (NYSE)',
-    'ADBE': 'Adobe (NASDAQ)',
-    'CRM': 'Salesforce (NYSE)',
-    'INTC': 'Intel (NASDAQ)',
-    'AMD': 'AMD (NASDAQ)',
-    'CSCO': 'Cisco (NASDAQ)',
-    
+    'AAPL': 'Apple (NASDAQ)', 'MSFT': 'Microsoft (NASDAQ)', 'GOOG': 'Alphabet (Google) (NASDAQ)',
+    'AMZN': 'Amazon (NASDAQ)', 'TSLA': 'Tesla (NASDAQ)', 'NVDA': 'NVIDIA (NASDAQ)',
+    'META': 'Meta Platforms (NASDAQ)', 'ORCL': 'Oracle (NYSE)', 'ADBE': 'Adobe (NASDAQ)',
+    'CRM': 'Salesforce (NYSE)', 'INTC': 'Intel (NASDAQ)', 'AMD': 'AMD (NASDAQ)', 'CSCO': 'Cisco (NASDAQ)',
     # US Finance
-    'JPM': 'JPMorgan Chase (NYSE)',
-    'BAC': 'Bank of America (NYSE)',
-    'WFC': 'Wells Fargo (NYSE)',
-    'GS': 'Goldman Sachs (NYSE)',
-    'MS': 'Morgan Stanley (NYSE)',
-    'V': 'Visa (NYSE)',
-    'MA': 'Mastercard (NYSE)',
-    'AXP': 'American Express (NYSE)',
-    
+    'JPM': 'JPMorgan Chase (NYSE)', 'BAC': 'Bank of America (NYSE)', 'WFC': 'Wells Fargo (NYSE)',
+    'GS': 'Goldman Sachs (NYSE)', 'MS': 'Morgan Stanley (NYSE)', 'V': 'Visa (NYSE)',
+    'MA': 'Mastercard (NYSE)', 'AXP': 'American Express (NYSE)',
     # US Santé
-    'JNJ': 'Johnson & Johnson (NYSE)',
-    'UNH': 'UnitedHealth Group (NYSE)',
-    'PFE': 'Pfizer (NYSE)',
-    'LLY': 'Eli Lilly (NYSE)',
-    'MRK': 'Merck & Co. (NYSE)',
-    
+    'JNJ': 'Johnson & Johnson (NYSE)', 'UNH': 'UnitedHealth Group (NYSE)', 'PFE': 'Pfizer (NYSE)',
+    'LLY': 'Eli Lilly (NYSE)', 'MRK': 'Merck & Co. (NYSE)',
     # US Consommation
-    'WMT': 'Walmart (NYSE)',
-    'PG': 'Procter & Gamble (NYSE)',
-    'KO': 'Coca-Cola (NYSE)',
-    'PEP': 'PepsiCo (NASDAQ)',
-    'NKE': 'Nike (NYSE)',
-    'MCD': 'McDonald\'s (NYSE)',
-    'DIS': 'Disney (NYSE)',
-    'COST': 'Costco (NASDAQ)',
-    
+    'WMT': 'Walmart (NYSE)', 'PG': 'Procter & Gamble (NYSE)', 'KO': 'Coca-Cola (NYSE)',
+    'PEP': 'PepsiCo (NASDAQ)', 'NKE': 'Nike (NYSE)', 'MCD': 'McDonald\'s (NYSE)',
+    'DIS': 'Disney (NYSE)', 'COST': 'Costco (NASDAQ)',
     # Euronext Paris
-    'MC.PA': 'LVMH (Euronext Paris)',
-    'OR.PA': 'L\'Oréal (Euronext Paris)',
-    'RMS.PA': 'Hermès (Euronext Paris)',
-    'DCAM.PA': 'Amundi (Euronext Paris)',
-    'TTE.PA': 'TotalEnergies (Euronext Paris)',
-    'SAN.PA': 'Sanofi (Euronext Paris)',
-    'AIR.PA': 'Airbus (Euronext Paris)',
-    'BNP.PA': 'BNP Paribas (Euronext Paris)',
-    'SAF.PA': 'Safran (Euronext Paris)',
-    'KER.PA': 'Kering (Euronext Paris)',
-    'AI.PA': 'Air Liquide (Euronext Paris)',
-    'EL.PA': 'EssilorLuxottica (Euronext Paris)',
-    
+    'MC.PA': 'LVMH (Euronext Paris)', 'OR.PA': 'L\'Oréal (Euronext Paris)', 'RMS.PA': 'Hermès (Euronext Paris)',
+    'DCAM.PA': 'Amundi (Euronext Paris)', 'TTE.PA': 'TotalEnergies (Euronext Paris)', 'SAN.PA': 'Sanofi (Euronext Paris)',
+    'AIR.PA': 'Airbus (Euronext Paris)', 'BNP.PA': 'BNP Paribas (Euronext Paris)',
+    'SAF.PA': 'Safran (Euronext Paris)', 'KER.PA': 'Kering (Euronext Paris)',
+    'AI.PA': 'Air Liquide (Euronext Paris)', 'EL.PA': 'EssilorLuxottica (Euronext Paris)',
     # Asie (Exemples)
-    '7203.T': 'Toyota Motor (Tokyo)',
-    '6758.T': 'Sony (Tokyo)',
-    'BABA': 'Alibaba (NYSE)',
-    'TM': 'Toyota Motor (NYSE)',
-    
+    '7203.T': 'Toyota Motor (Tokyo)', '6758.T': 'Sony (Tokyo)', 'BABA': 'Alibaba (NYSE)', 'TM': 'Toyota Motor (NYSE)',
     # Crypto
-    'BTC-USD': 'Bitcoin (Crypto)',
-    'ETH-USD': 'Ethereum (Crypto)',
-    'SOL-USD': 'Solana (Crypto)',
-    'XRP-USD': 'Ripple (Crypto)',
+    'BTC-USD': 'Bitcoin (Crypto)', 'ETH-USD': 'Ethereum (Crypto)', 'SOL-USD': 'Solana (Crypto)', 'XRP-USD': 'Ripple (Crypto)',
 }
-# --- FIN DE LA NOUVELLE BASE DE DONNÉES ---
 
 
 # --- FONCTION CACHÉE POUR LA SIMULATION ---
