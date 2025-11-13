@@ -162,7 +162,7 @@ TRANSLATIONS = {
     }
 }
 
-# --- NOUVEAU : BASE DE DONNÉES DE TICKERS ÉTENDUE ---
+# --- BASE DE DONNÉES DE TICKERS ÉTENDUE ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
     'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
@@ -228,7 +228,7 @@ T = TRANSLATIONS[lang]
 if 'selected_tickers' not in st.session_state:
     st.session_state.selected_tickers = [] 
 
-# --- NOUVELLE LOGIQUE : L'AJOUT MANUEL EST SORTI DU FORMULAIRE ---
+# --- NOUVELLE LOGIQUE : INTERACTIVE (HORS FORMULAIRE) ---
 def add_manual_tickers():
     manual_str = st.session_state.manual_ticker_input
     if manual_str:
@@ -244,20 +244,20 @@ st.sidebar.text_input(
     on_change=add_manual_tickers
 )
 
-# Le sélecteur "intelligent" (aussi hors du formulaire pour la synchro)
 selected_tickers_multi = st.sidebar.multiselect(
     T['ticker_select_label'],
     options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.selected_tickers))),
     default=st.session_state.selected_tickers,
     format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
 )
-# Mettre à jour la session state immédiatement
 st.session_state.selected_tickers = selected_tickers_multi
-# --- FIN DE LA NOUVELLE LOGIQUE ---
+
+# LA CASE À COCHER EST MAINTENANT INTERACTIVE (HORS FORMULAIRE)
+use_current_portfolio = st.sidebar.checkbox(T['compare_label'], key='compare_checkbox')
+# --- FIN DE LA PARTIE INTERACTIVE ---
 
 
 # --- DÉBUT DU FORMULAIRE ---
-# Le formulaire ne contient plus que les paramètres de simulation
 with st.sidebar.form(key='params_form'):
     
     st.sidebar.subheader(T['sim_params_header'])
@@ -272,9 +272,6 @@ with st.sidebar.form(key='params_form'):
         1000, 20000, 10000, 1000
     )
 
-    st.sidebar.header(T['current_header'])
-    use_current_portfolio = st.checkbox(T['compare_label'])
-
     current_inputs = []
     input_mode = None
     monetary_values = []
@@ -282,7 +279,9 @@ with st.sidebar.form(key='params_form'):
     # On utilise la session state pour les tickers (maintenant unifiée)
     tickers_in_form = sorted(list(set(st.session_state.selected_tickers))) 
 
+    # LES CHAMPS N'APPARAISSENT QUE SI LA CASE EST COCHÉE
     if use_current_portfolio:
+        st.sidebar.header(T['current_header'])
         input_mode = st.radio(
             T['input_mode_label'],
             (T['mode_amount'], T['mode_shares'])
