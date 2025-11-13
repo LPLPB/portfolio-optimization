@@ -9,7 +9,6 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Portfolio Optimizer", page_icon="📊", layout="wide")
 
 # --- 2. DICTIONNAIRE DE TRADUCTION (EN/FR) ---
-# J'ai fusionné ton dictionnaire avec le mien pour avoir toutes les clés
 TRANSLATIONS = {
     'en': {
         'title': "Portfolio Optimizer",
@@ -167,7 +166,7 @@ TRANSLATIONS = {
     }
 }
 
-# --- J'AI REMIS LA GRANDE LISTE DE TICKERS ---
+# --- BASE DE DONNÉES DE TICKERS ÉTENDUE ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
     'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
@@ -203,7 +202,7 @@ PREDEFINED_TICKERS = {
 }
 
 
-# --- CORRECTION DU BUG PANDAS/NUMPY ---
+# --- FONCTION CACHÉE POUR LA SIMULATION (CORRIGÉE) ---
 @st.cache_data
 def run_simulation(log_ret, num_ports, num_assets):
     all_weights = np.zeros((num_ports, num_assets))
@@ -226,17 +225,23 @@ def run_simulation(log_ret, num_ports, num_assets):
         all_sharpes[i] = all_returns[i] / all_vols[i]
         
     return all_weights, all_returns, all_vols, all_sharpes
+
+# --- 3. BARRE LATÉRALE (Inputs) ---
+
+# --- CORRECTION DU BUG "NameError" ---
+# On définit la langue AVANT d'appeler T['...']
+lang_choice = st.sidebar.selectbox(
+    "Language / Langue", 
+    ['English', 'Français'], 
+    index=0 
+)
+lang = 'en' if lang_choice == 'English' else 'fr'
+T = TRANSLATIONS[lang] 
+
+st.sidebar.header(T['sidebar_header'])
 # --- FIN DE LA CORRECTION ---
 
-# ---------------------------
-# BARRE LATÉRALE (Structure "Wizard" 2 Étapes)
-# ---------------------------
-st.sidebar.header(T['sidebar_header'])
-
-lang_choice = st.sidebar.selectbox(T['lang_select'], ['English', 'Français'])
-lang = 'en' if lang_choice == 'English' else 'fr'
-T = TRANSLATIONS[lang]
-
+# Initialisation du state
 if 'step' not in st.session_state:
     st.session_state.step = 1
 if 'locked_tickers' not in st.session_state:
@@ -246,7 +251,10 @@ if 'run_simulation' not in st.session_state:
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = []
 
-# --- ÉTAPE 1 : Sélection (DANS UN FORMULAIRE) ---
+
+# --- LOGIQUE D'ÉTAPE (WIZARD) ---
+
+# ÉTAPE 1 : Sélection des Tickers
 if st.session_state.step == 1:
     with st.sidebar.form(key='ticker_form'):
         st.sidebar.subheader(T['ticker_select_label'])
@@ -259,38 +267,41 @@ if st.session_state.step == 1:
 
         custom_tickers_string = st.text_input(T['ticker_manual_label'])
         
-        # Le bouton "Valider la sélection" est le SEUL bouton.
-        # "Entrée" sur le champ manuel va soumettre le formulaire, ce qui est OK
-        # car on valide la sélection totale.
-        validate_all_button = st.form_submit_button(T['ticker_global_validate'])
+        validate_button = st.form_submit_button(T['ticker_global_validate'])
 
-        if validate_all_button:
-            custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
-            tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
-            
-            if not tickers:
-                st.sidebar.error(T['ticker_error'])
-            else:
-                st.session_state.locked_tickers = tickers
-                st.session_state.step = 2
-                st.rerun()
+    if validate_button:
+        custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
+        tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
+        
+        if not tickers:
+            st.sidebar.error(T['ticker_error'])
+        else:
+            st.session_state.locked_tickers = tickers
+            st.session_state.step = 2
+            st.rerun() # Force le rechargement pour passer à l'étape 2
 
-# --- ÉTAPE 2 : Paramètres (INTERACTIF + FORMULAIRE) ---
+# ÉTAPE 2 : Paramètres et Lancement
 elif st.session_state.step == 2:
     st.sidebar.subheader(T['tickers_locked'])
-    st.sidebar.info(", ".join(st.session_state.locked_tickers))
+    st.sidebar.info(f"{', '.join(st.session_state.locked_tickers)}")
     if st.sidebar.button(T['tickers_modify_button']):
         st.session_state.step = 1
-        st.session_state.run_simulation = False
+        st.session_state.run_simulation = False # On réinitialise
         st.rerun()
 
-    # CES BOUTONS SONT MAINTENANT INTERACTIFS
-    use_current_portfolio = st.sidebar.checkbox(T['compare_label'])
+    # Case à cocher interactive (HORS DU FORMULAIRE)
+    use_current_portfolio = st.sidebar.checkbox(T['compare_label'], key='compare_checkbox')
+    
+    # Logique pour les boutons "By Amount" / "By Share" (HORS DU FORMULAIRE)
     input_mode = None
-    if use_current_portfolio:
-        input_mode = st.sidebar.radio(T['input_mode_label'], (T['mode_amount'], T['mode_shares']))
-
-    with st.sidebar.form('params_form'):
+    if use_current_portfolio: # N'affiche les boutons que si la case est cochée
+        input_mode = st.sidebar.radio(
+            T['input_mode_label'],
+            (T['mode_amount'], T['mode_shares']),
+            key='input_mode_radio'
+        )
+    
+    with st.sidebar.form(key='params_form'):
         st.sidebar.subheader(T['sim_params_header'])
         period = st.text_input(T['period_label'], "504d")
         num_ports = st.slider(T['ports_label'], 1000, 20000, 10000, 1000)
@@ -298,37 +309,33 @@ elif st.session_state.step == 2:
         current_inputs = []
         monetary_values = []
         
-        # Les champs de saisie s'affichent en fonction des boutons interactifs
-        if use_current_portfolio and input_mode:
+        tickers_in_form = st.session_state.locked_tickers
+
+        if use_current_portfolio: # Utilise la valeur de la checkbox
             st.sidebar.header(T['current_header'])
-            for ticker in st.session_state.locked_tickers:
-                if input_mode == T['mode_amount']:
-                    amount = st.number_input(
-                        T['amount_label'].format(ticker=ticker),
-                        min_value=0.0, value=1000.0, step=10.0,
-                        key=f"amount_{ticker}"
-                    )
+            
+            if input_mode == T['mode_amount']:
+                st.write(T['mode_amount'] + ":")
+                for ticker in tickers_in_form:
+                    amount = st.number_input(T['amount_label'].format(ticker=ticker), min_value=0.0, value=1000.0, step=10.0, key=f"amount_{ticker}")
                     current_inputs.append(amount)
-                else:
-                    shares = st.number_input(
-                        T['shares_label'].format(ticker=ticker),
-                        min_value=0.0, value=10.0, step=0.1,
-                        key=f"shares_{ticker}"
-                    )
+            
+            elif input_mode == T['mode_shares']:
+                st.write(T['mode_shares'] + ":")
+                for ticker in tickers_in_form:
+                    shares = st.number_input(T['shares_label'].format(ticker=ticker), min_value=0.0, value=10.0, step=0.1, key=f"shares_{ticker}")
                     current_inputs.append(shares)
 
         run_button = st.form_submit_button(T['run_button'])
         if run_button:
-            st.session_state.run_simulation = True
+            st.session_state.run_simulation = True # On sauvegarde le fait qu'on a cliqué
             st.session_state.current_inputs = current_inputs
             st.session_state.input_mode = input_mode
             st.session_state.use_current_portfolio = use_current_portfolio
 
-# ---------------------------
-# CORPS PRINCIPAL
-# ---------------------------
 
-# --- J'AI REMIS LA PHOTO ET TON NOM ---
+# --- 4. CORPS PRINCIPAL DE L'APPLICATION ---
+
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     st.image(
@@ -349,8 +356,12 @@ if not st.session_state.run_simulation:
 # Le code s'exécute si on a cliqué sur "Run"
 tickers = st.session_state.locked_tickers
 
+if not tickers:
+    st.error(T['ticker_error'])
+    st.stop()
+
 try:
-    with st.spinner(T['loading_data'].format(tickers=", ".join(tickers))):
+    with st.spinner(T['loading_data'].format(tickers=', '.join(tickers))):
         stocks = yf.download(tickers, period=period, auto_adjust=True)['Close']
         if isinstance(stocks, pd.Series):
             stocks = stocks.to_frame(name=tickers[0])
@@ -363,7 +374,6 @@ except Exception as e:
     st.error(T['loading_error'].format(e=e))
     st.stop()
 
-# --- J'AI REMIS TOUS LES CALCULS (PORTFOLIO ACTUEL) ---
 current_return, current_risk, current_sharpe = None, None, None
 current_weights_np = None
 total_portfolio_value = 0
@@ -398,8 +408,6 @@ if use_current_portfolio and current_inputs:
     current_return = np.sum((log_ret.mean().values * current_weights_np) * 252)
     current_risk = np.sqrt(np.dot(current_weights_np.T, np.dot(log_ret.cov().values * 252, current_weights_np)))
     current_sharpe = current_return / current_risk if current_risk != 0 else 0
-# --- FIN DES CALCULS ---
-
 
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
     all_weights, all_returns, all_vols, all_sharpes = run_simulation(log_ret, num_ports, num_assets)
@@ -408,7 +416,7 @@ max_sharpe_idx = np.argmax(all_sharpes)
 opt_weights = all_weights[max_sharpe_idx]
 opt_return, opt_vol, opt_sharpe = all_returns[max_sharpe_idx], all_vols[max_sharpe_idx], all_sharpes[max_sharpe_idx]
 
-# --- J'AI REMIS TOUT LE CONTENU CI-DESSOUS ---
+# --- AFFICHAGE DE TOUT LE CONTENU (REMIS) ---
 
 if use_current_portfolio and current_return is not None:
     st.header(T['current_analysis_header'])
