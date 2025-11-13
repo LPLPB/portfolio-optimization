@@ -19,8 +19,8 @@ TRANSLATIONS = {
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
         'ticker_manual_label': "Or add tickers manually (comma separated)",
-        'ticker_validate_button': "Add Manual Tickers", # Clé utilisée par la nouvelle Étape 1
-        'ticker_global_validate': "Validate Selection", # Clé utilisée par la nouvelle Étape 1
+        'ticker_validate_button': "Add Manual Tickers",
+        'ticker_global_validate': "Validate Selection",
         'tickers_locked': "Selected Assets:",
         'tickers_modify_button': "Modify Selection",
         'ticker_error': "Please select at least one ticker.",
@@ -96,8 +96,8 @@ TRANSLATIONS = {
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
         'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par des virgules)",
-        'ticker_validate_button': "Ajouter les tickers manuels", # Clé utilisée par la nouvelle Étape 1
-        'ticker_global_validate': "Valider la sélection", # Clé utilisée par la nouvelle Étape 1
+        'ticker_validate_button': "Ajouter les tickers manuels",
+        'ticker_global_validate': "Valider la sélection",
         'tickers_locked': "Actifs sélectionnés :",
         'tickers_modify_button': "Modifier la sélection",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
@@ -244,7 +244,7 @@ if 'run_simulation' not in st.session_state:
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = []
 
-# --- ÉTAPE 1 : Sélection (MODIFIÉE SELON LE SCRIPT 2) ---
+# --- ÉTAPE 1 : Sélection ---
 if st.session_state.step == 1:
     st.sidebar.subheader(T['ticker_select_label'])
     selected_tickers_multi = st.sidebar.multiselect(
@@ -273,21 +273,19 @@ if st.session_state.step == 1:
             st.session_state.step = 2
             st.rerun()
 
-# --- ÉTAPE 2 : Paramètres (Conservée du Script 1) ---
+# --- ÉTAPE 2 : Paramètres ---
 elif st.session_state.step == 2:
     st.sidebar.subheader(T['tickers_locked'])
-    st.sidebar.info(", ".join(st.session_state.locked_tickers))
+    st.sidebar.info(", ".ーん".join(st.session_state.locked_tickers))
     if st.sidebar.button(T['tickers_modify_button']):
         st.session_state.step = 1
         st.session_state.run_simulation = False # On réinitialise
         st.rerun()
 
-    # Case à cocher interactive (HORS DU FORMULAIRE)
     use_current_portfolio = st.sidebar.checkbox(T['compare_label'], key='compare_checkbox')
     
-    # Logique pour les boutons "By Amount" / "By Share" (HORS DU FORMULAIRE)
     input_mode = None
-    if use_current_portfolio: # N'affiche les boutons que si la case est cochée
+    if use_current_portfolio:
         input_mode = st.sidebar.radio(
             T['input_mode_label'],
             (T['mode_amount'], T['mode_shares']),
@@ -304,7 +302,7 @@ elif st.session_state.step == 2:
         
         tickers_in_form = st.session_state.locked_tickers
 
-        if use_current_portfolio: # Utilise la valeur de la checkbox
+        if use_current_portfolio:
             st.sidebar.header(T['current_header'])
             
             if input_mode == T['mode_amount']:
@@ -329,11 +327,10 @@ elif st.session_state.step == 2:
 
         run_button = st.form_submit_button(T['run_button'])
         if run_button:
-            st.session_state.run_simulation = True # On sauvegarde le fait qu'on a cliqué
+            st.session_state.run_simulation = True
             st.session_state.current_inputs = current_inputs
             st.session_state.input_mode = input_mode
             st.session_state.use_current_portfolio = use_current_portfolio
-            # On sauvegarde aussi period et num_ports pour y accéder hors du formulaire
             st.session_state.period = period
             st.session_state.num_ports = num_ports
 
@@ -345,13 +342,14 @@ elif st.session_state.step == 2:
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     try:
+        # Assurez-vous que l'image 'markowitz.jpg' est dans le même répertoire que votre script Streamlit
         st.image(
-            "markowitz.jpg", # Charge le fichier local
+            "markowitz.jpg",
             width=150,
             caption="Harry Markowitz"
         )
     except:
-        st.warning("Image 'markowitz.jpg' non trouvée.")
+        st.warning("Image 'markowitz.jpg' non trouvée. Veuillez la placer dans le même dossier que le script.")
 with col_titre:
     st.title(f"📊 {T['title']}")
     st.markdown(f"{T['created_by']} | [LinkedIn](https://www.linkedin.com/in/leopaullaisne)")
@@ -362,15 +360,12 @@ if not st.session_state.run_simulation:
     st.info(T['run_info'])
     st.stop()
 
-# Le code s'exécute si on a cliqué sur "Run"
 tickers = st.session_state.locked_tickers
 
 if not tickers:
     st.error(T['ticker_error'])
     st.stop()
 
-# --- BLOC TRY/EXCEPT POUR LE TÉLÉCHARGEMENT ---
-# On récupère period et num_ports depuis le session_state
 period = st.session_state.get('period', '504d')
 num_ports = st.session_state.get('num_ports', 10000)
 
@@ -388,7 +383,6 @@ except Exception as e:
     st.error(T['loading_error'].format(e=e))
     st.stop()
 
-# --- CALCULS DU PORTEFEUILLE ACTUEL ---
 current_return, current_risk, current_sharpe = None, None, None
 current_weights_np = None
 total_portfolio_value = 0
@@ -423,18 +417,14 @@ if use_current_portfolio and current_inputs:
     current_return = np.sum((log_ret.mean().values * current_weights_np) * 252)
     current_risk = np.sqrt(np.dot(current_weights_np.T, np.dot(log_ret.cov().values * 252, current_weights_np)))
     current_sharpe = current_return / current_risk if current_risk != 0 else 0
-# --- FIN DES CALCULS ---
 
 
-# --- SIMULATION ---
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
     all_weights, all_returns, all_vols, all_sharpes = run_simulation(log_ret, num_ports, num_assets)
 
 max_sharpe_idx = np.argmax(all_sharpes)
 opt_weights = all_weights[max_sharpe_idx]
 opt_return, opt_vol, opt_sharpe = all_returns[max_sharpe_idx], all_vols[max_sharpe_idx], all_sharpes[max_sharpe_idx]
-
-# --- AFFICHAGE DES RÉSULTATS ---
 
 if use_current_portfolio and current_return is not None:
     st.header(T['current_analysis_header'])
@@ -498,10 +488,12 @@ df_plot = pd.DataFrame({
 fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
                        color_continuous_scale='RdYlGn',
                        labels={'Sharpe': 'Ratio de Sharpe'},
-                       hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
+                       hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'},
+                       # Utilisation de 'legendgroup' pour mieux gérer les légendes
+                       # C'est un paramètre de trace et non de layout, donc il faut le faire via go.Scatter
+                       # ou ajouter les traces manuellement comme ci-dessous.
                      )
 
-# --- DEBUT DE LA CORRECTION ---
 fig_scatter.update_layout(
     title=T['frontier_chart_title'],
     xaxis_title=T['frontier_xaxis'],
@@ -509,24 +501,27 @@ fig_scatter.update_layout(
     template='plotly_dark',
     legend=dict(
         title=T['legend_title'],
-        yanchor="bottom", y=1.02,  # Position au-dessus
-        xanchor="right", x=1,      # Position à droite
-        bgcolor="black",          # Fond OPAQUE
-        bordercolor="white", borderwidth=1
+        yanchor="bottom", y=1.02,
+        xanchor="right", x=1,
+        bgcolor="black",
+        bordercolor="white", borderwidth=1,
+        layer="above" # Ajout crucial pour s'assurer que la légende est au-dessus
     )
 )
-# --- FIN DE LA CORRECTION ---
 
 fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=opt_vol, y1=opt_return,
-                      line=dict(color="lime", width=2, dash="dot"))
+                      line=dict(color="lime", width=2, dash="dot"),
+                      layer="below") # Mettre la ligne en dessous si besoin
 
 fig_scatter.add_trace(go.Scatter(
     x=[opt_vol], 
     y=[opt_return],
     mode='markers',
     marker=dict(color='white', size=10, line=dict(color='black', width=2)),
-    name=T['legend_optimal']
+    name=T['legend_optimal'],
+    legendgroup='optimal', # Assure un regroupement cohérent dans la légende
+    showlegend=True # S'assurer qu'il apparaît dans la légende
 ))
 
 if use_current_portfolio and current_return is not None:
@@ -535,7 +530,9 @@ if use_current_portfolio and current_return is not None:
         y=[current_return],
         mode='markers',
         marker=dict(color='cyan', size=12, symbol='star', line=dict(color='black', width=1)),
-        name=T['legend_current']
+        name=T['legend_current'],
+        legendgroup='current', # Assure un regroupement cohérent
+        showlegend=True
     ))
 
 st.plotly_chart(fig_scatter, use_container_width=True)
@@ -555,51 +552,3 @@ with st.expander(T['extra_charts_header']):
     st.divider()
 
     st.subheader(T['returns_table_start'])
-    daily_pct_change = stocks[tickers].pct_change().dropna() * 100
-    st.dataframe(daily_pct_change.head(5).style.format("{:.2f}%"))
-    
-    st.subheader(T['returns_table_end'])
-    st.dataframe(daily_pct_change.tail(5).style.format("{:.2f}%"))
-
-with st.expander(T['corr_header']):
-    df_corr = log_ret[tickers].corr()
-    fig_heatmap = px.imshow(df_corr, text_auto=True, color_continuous_scale='Mint',
-                            labels=dict(y=T['corr_company'], x=T['corr_company']))
-    fig_heatmap.update_layout(template='plotly_dark')
-    st.plotly_chart(fig_heatmap, use_container_width=True)
-
-# --- BLOC FINAL (AVEC INDENTATION CORRIGÉE) ---
-if use_current_portfolio and current_return is not None:
-    st.header(T['conclusion_header'])
-    st.write(T['conclusion_subheader'].format(value=total_portfolio_value))
-
-    optimal_values = opt_weights * total_portfolio_value
-    
-    st.subheader(T['action_header'])
-    
-    col1, col2, col3, col4 = st.columns(4)
-    col1.write(f"**{T['col_action']}**")
-    col2.write(f"**{T['col_current_pos']}**")
-    col3.write(f"**{T['col_optimal_pos']}**")
-    col4.write(f"**{T['col_action_req']}**")
-    st.divider()
-
-    for i, ticker in enumerate(tickers):
-        current_val = monetary_values[i]
-        optimal_val = optimal_values[i]
-        diff = optimal_val - current_val
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.write(f"**{ticker}**")
-        with col2:
-            st.write(f"{current_val:,.2f}")
-        with col3:
-            st.write(f"{optimal_val:,.2f}")
-        with col4:
-            if diff > 0.01:
-                st.success(T['action_buy'].format(diff=diff))
-            elif diff < -0.01:
-                st.error(T['action_sell'].format(abs_diff=abs(diff)))
-            else:
-                st.info(T['action_hold'])
