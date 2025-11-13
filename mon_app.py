@@ -19,8 +19,8 @@ TRANSLATIONS = {
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
         'ticker_manual_label': "Or add tickers manually (comma separated)",
-        'ticker_validate_button': "Add Manual Tickers",
-        'ticker_global_validate': "Validate Selection",
+        'ticker_validate_button': "Add Manual Tickers", # Clé utilisée par la nouvelle Étape 1
+        'ticker_global_validate': "Validate Selection", # Clé utilisée par la nouvelle Étape 1
         'tickers_locked': "Selected Assets:",
         'tickers_modify_button': "Modify Selection",
         'ticker_error': "Please select at least one ticker.",
@@ -96,8 +96,8 @@ TRANSLATIONS = {
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
         'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par des virgules)",
-        'ticker_validate_button': "Ajouter les tickers manuels",
-        'ticker_global_validate': "Valider la sélection",
+        'ticker_validate_button': "Ajouter les tickers manuels", # Clé utilisée par la nouvelle Étape 1
+        'ticker_global_validate': "Valider la sélection", # Clé utilisée par la nouvelle Étape 1
         'tickers_locked': "Actifs sélectionnés :",
         'tickers_modify_button': "Modifier la sélection",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
@@ -276,7 +276,12 @@ if st.session_state.step == 1:
 # --- ÉTAPE 2 : Paramètres ---
 elif st.session_state.step == 2:
     st.sidebar.subheader(T['tickers_locked'])
-    st.sidebar.info(", ".ーん".join(st.session_state.locked_tickers))
+    
+    # --- DÉBUT DE LA CORRECTION ---
+    # Remplacement de ".ーん".join(...) par ", ".join(...)
+    st.sidebar.info(", ".join(st.session_state.locked_tickers))
+    # --- FIN DE LA CORRECTION ---
+
     if st.sidebar.button(T['tickers_modify_button']):
         st.session_state.step = 1
         st.session_state.run_simulation = False # On réinitialise
@@ -348,8 +353,8 @@ with col_img:
             width=150,
             caption="Harry Markowitz"
         )
-    except:
-        st.warning("Image 'markowitz.jpg' non trouvée. Veuillez la placer dans le même dossier que le script.")
+    except Exception as e:
+        st.warning(f"Image 'markowitz.jpg' non trouvée. (Erreur: {e})")
 with col_titre:
     st.title(f"📊 {T['title']}")
     st.markdown(f"{T['created_by']} | [LinkedIn](https://www.linkedin.com/in/leopaullaisne)")
@@ -401,7 +406,8 @@ if use_current_portfolio and current_inputs:
     
     elif input_mode == T['mode_shares']:
         for i, ticker in enumerate(tickers):
-            price = current_prices[ticker] if num_assets > 1 else current_prices[tickers[0]]
+            # Gestion correcte si un seul ticker est sélectionné (current_prices est un float)
+            price = current_prices[ticker] if isinstance(current_prices, pd.Series) else current_prices
             shares = current_inputs[i]
             monetary_values.append(shares * price)
     
@@ -488,12 +494,10 @@ df_plot = pd.DataFrame({
 fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
                        color_continuous_scale='RdYlGn',
                        labels={'Sharpe': 'Ratio de Sharpe'},
-                       hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'},
-                       # Utilisation de 'legendgroup' pour mieux gérer les légendes
-                       # C'est un paramètre de trace et non de layout, donc il faut le faire via go.Scatter
-                       # ou ajouter les traces manuellement comme ci-dessous.
+                       hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
                      )
 
+# --- CORRECTION DE LA LÉGENDE (MAINTENUE) ---
 fig_scatter.update_layout(
     title=T['frontier_chart_title'],
     xaxis_title=T['frontier_xaxis'],
@@ -501,18 +505,19 @@ fig_scatter.update_layout(
     template='plotly_dark',
     legend=dict(
         title=T['legend_title'],
-        yanchor="bottom", y=1.02,
-        xanchor="right", x=1,
-        bgcolor="black",
+        yanchor="bottom", y=1.02,  # Position au-dessus
+        xanchor="right", x=1,      # Position à droite
+        bgcolor="black",          # Fond OPAQUE
         bordercolor="white", borderwidth=1,
-        layer="above" # Ajout crucial pour s'assurer que la légende est au-dessus
+        layer="above"             # Force la légende à être au-dessus
     )
 )
+# --- FIN CORRECTION LÉGENDE ---
 
 fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=opt_vol, y1=opt_return,
                       line=dict(color="lime", width=2, dash="dot"),
-                      layer="below") # Mettre la ligne en dessous si besoin
+                      layer="below") # Mettre la ligne en dessous des points
 
 fig_scatter.add_trace(go.Scatter(
     x=[opt_vol], 
@@ -520,8 +525,8 @@ fig_scatter.add_trace(go.Scatter(
     mode='markers',
     marker=dict(color='white', size=10, line=dict(color='black', width=2)),
     name=T['legend_optimal'],
-    legendgroup='optimal', # Assure un regroupement cohérent dans la légende
-    showlegend=True # S'assurer qu'il apparaît dans la légende
+    legendgroup='optimal',
+    showlegend=True
 ))
 
 if use_current_portfolio and current_return is not None:
@@ -531,7 +536,7 @@ if use_current_portfolio and current_return is not None:
         mode='markers',
         marker=dict(color='cyan', size=12, symbol='star', line=dict(color='black', width=1)),
         name=T['legend_current'],
-        legendgroup='current', # Assure un regroupement cohérent
+        legendgroup='current',
         showlegend=True
     ))
 
@@ -540,15 +545,69 @@ st.plotly_chart(fig_scatter, use_container_width=True)
 with st.expander(T['extra_charts_header']):
     
     st.subheader(T['prices_chart_title'])
-    fig_prices = px.line(stocks[tickers], title=T['prices_chart_title'])
+    # Gestion du cas où 'stocks' n'a qu'une seule colonne
+    data_to_plot = stocks[tickers] if isinstance(stocks, pd.DataFrame) else stocks
+    fig_prices = px.line(data_to_plot, title=T['prices_chart_title'])
     fig_prices.update_layout(template='plotly_dark', yaxis_title=T['prices_chart_yaxis'], xaxis_title=T['prices_chart_xaxis'], legend_title=T['prices_chart_legend'])
     st.plotly_chart(fig_prices, use_container_width=True)
 
     st.subheader(T['prices_table_start'])
-    st.dataframe(stocks[tickers].head(5).style.format("{:.2f}"))
+    st.dataframe(data_to_plot.head(5).style.format("{:.2f}"))
 
     st.subheader(T['prices_table_end'])
-    st.dataframe(stocks[tickers].tail(5).style.format("{:.2f}"))
+    st.dataframe(data_to_plot.tail(5).style.format("{:.2f}"))
     st.divider()
 
     st.subheader(T['returns_table_start'])
+    # Gestion du cas où 'stocks' n'a qu'une seule colonne
+    daily_pct_change = data_to_plot.pct_change().dropna() * 100
+    st.dataframe(daily_pct_change.head(5).style.format("{:.2f}%"))
+    
+    st.subheader(T['returns_table_end'])
+    st.dataframe(daily_pct_change.tail(5).style.format("{:.2f}%"))
+
+with st.expander(T['corr_header']):
+    # Gestion du cas où 'log_ret' n'a qu'une seule colonne
+    if isinstance(log_ret, pd.DataFrame) and len(log_ret.columns) > 1:
+        df_corr = log_ret[tickers].corr()
+        fig_heatmap = px.imshow(df_corr, text_auto=True, color_continuous_scale='Mint',
+                                labels=dict(y=T['corr_company'], x=T['corr_company']))
+        fig_heatmap.update_layout(template='plotly_dark')
+        st.plotly_chart(fig_heatmap, use_container_width=True)
+    else:
+        st.info("La matrice de corrélation nécessite au moins 2 actifs.")
+
+if use_current_portfolio and current_return is not None:
+    st.header(T['conclusion_header'])
+    st.write(T['conclusion_subheader'].format(value=total_portfolio_value))
+
+    optimal_values = opt_weights * total_portfolio_value
+    
+    st.subheader(T['action_header'])
+    
+    col1, col2, col3, col4 = st.columns(4)
+    col1.write(f"**{T['col_action']}**")
+    col2.write(f"**{T['col_current_pos']}**")
+    col3.write(f"**{T['col_optimal_pos']}**")
+    col4.write(f"**{T['col_action_req']}**")
+    st.divider()
+
+    for i, ticker in enumerate(tickers):
+        current_val = monetary_values[i]
+        optimal_val = optimal_values[i]
+        diff = optimal_val - current_val
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.write(f"**{ticker}**")
+        with col2:
+            st.write(f"{current_val:,.2f}")
+        with col3:
+            st.write(f"{optimal_val:,.2f}")
+        with col4:
+            if diff > 0.01:
+                st.success(T['action_buy'].format(diff=diff))
+            elif diff < -0.01:
+                st.error(T['action_sell'].format(abs_diff=abs(diff)))
+            else:
+                st.info(T['action_hold'])
