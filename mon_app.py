@@ -9,7 +9,6 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Portfolio Optimizer", page_icon="📊", layout="wide")
 
 # --- 2. DICTIONNAIRE DE TRADUCTION (EN/FR) ---
-# (Conservé du Script 1, car il est complet)
 TRANSLATIONS = {
     'en': {
         'title': "Portfolio Optimizer",
@@ -167,7 +166,7 @@ TRANSLATIONS = {
     }
 }
 
-# --- GRANDE LISTE DE TICKERS (Conservée du Script 1) ---
+# --- GRANDE LISTE DE TICKERS ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
     'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
@@ -203,7 +202,7 @@ PREDEFINED_TICKERS = {
 }
 
 
-# --- FONCTION DE SIMULATION OPTIMISÉE (Conservée du Script 1) ---
+# --- FONCTION DE SIMULATION OPTIMISÉE ---
 @st.cache_data
 def run_simulation(log_ret, num_ports, num_assets):
     all_weights = np.zeros((num_ports, num_assets))
@@ -264,7 +263,6 @@ if st.session_state.step == 1:
         custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
         new_list = sorted(list(set(st.session_state.locked_tickers + selected_tickers_multi + custom_tickers)))
         st.session_state.locked_tickers = new_list
-        # Note : Le message suivant est codé en dur (venant du script 2)
         st.sidebar.success(f"✅ Added tickers: {', '.join(custom_tickers)}") 
 
     if validate_all_button:
@@ -339,7 +337,7 @@ elif st.session_state.step == 2:
 
 
 # ---------------------------
-# CORPS PRINCIPAL (Conservé du Script 1)
+# CORPS PRINCIPAL
 # ---------------------------
 
 col_img, col_titre = st.columns([1, 4])
@@ -366,6 +364,16 @@ if not tickers:
     st.error(T['ticker_error'])
     st.stop()
 
+# --- BLOC TRY/EXCEPT POUR LE TÉLÉCHARGEMENT ---
+# (Nous devons définir period ici, car il est utilisé dans ce bloc)
+# (Nous le récupérons depuis la session_state si 'Run' a été cliqué)
+if 'period' in locals():
+    # 'period' a été défini dans le formulaire de la sidebar
+    pass
+else:
+    # Au cas où l'état est perdu (peu probable mais sécurisé)
+    period = "504d" 
+
 try:
     with st.spinner(T['loading_data'].format(tickers=", ".join(tickers))):
         stocks = yf.download(tickers, period=period, auto_adjust=True)['Close']
@@ -380,7 +388,7 @@ except Exception as e:
     st.error(T['loading_error'].format(e=e))
     st.stop()
 
-# --- CALCULS DU PORTEFEUILLE ACTUEL (Conservé du Script 1) ---
+# --- CALCULS DU PORTEFEUILLE ACTUEL ---
 current_return, current_risk, current_sharpe = None, None, None
 current_weights_np = None
 total_portfolio_value = 0
@@ -418,6 +426,13 @@ if use_current_portfolio and current_inputs:
 # --- FIN DES CALCULS ---
 
 
+# --- SIMULATION ---
+# (Nous avons besoin de num_ports ici, défini dans la sidebar)
+if 'num_ports' in locals():
+    pass
+else:
+    num_ports = 10000 # Valeur par défaut si non trouvée
+
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
     all_weights, all_returns, all_vols, all_sharpes = run_simulation(log_ret, num_ports, num_assets)
 
@@ -425,7 +440,7 @@ max_sharpe_idx = np.argmax(all_sharpes)
 opt_weights = all_weights[max_sharpe_idx]
 opt_return, opt_vol, opt_sharpe = all_returns[max_sharpe_idx], all_vols[max_sharpe_idx], all_sharpes[max_sharpe_idx]
 
-# --- AFFICHAGE COMPLET (Conservé du Script 1) ---
+# --- AFFICHAGE DES RÉSULTATS ---
 
 if use_current_portfolio and current_return is not None:
     st.header(T['current_analysis_header'])
@@ -498,8 +513,8 @@ fig_scatter.update_layout(
     template='plotly_dark',
     legend=dict(
         title=T['legend_title'],
-        yanchor="bottom", y=1.02,  # Ajusté pour être au-dessus de la courbe
-        xanchor="right", x=1,     # Ajusté pour être en haut à droite
+        yanchor="bottom", y=1.02,  # CORRIGÉ : Au-dessus du graphique
+        xanchor="right", x=1,     # CORRIGÉ : Côté droit
         bgcolor="rgba(0,0,0,0.5)",
         bordercolor="white", borderwidth=1
     )
@@ -555,7 +570,7 @@ with st.expander(T['corr_header']):
     fig_heatmap.update_layout(template='plotly_dark')
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
-if use_current_portfolio and current_return is not None:
+# --- BLOC FINAL (AVEC INDENTATION CORRIGÉE) ---
 if use_current_portfolio and current_return is not None:
     st.header(T['conclusion_header'])
     st.write(T['conclusion_subheader'].format(value=total_portfolio_value))
