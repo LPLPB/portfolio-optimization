@@ -27,7 +27,8 @@ TRANSLATIONS = {
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
         'ticker_manual_label': "Or add tickers manually (comma separated)",
-        'ticker_validate_button': "Validate Tickers",
+        'ticker_validate_button': "Add Manual Tickers",
+        'ticker_global_validate': "Validate Selection",
         'tickers_locked': "Selected Assets:",
         'tickers_modify_button': "Modify Selection",
         'ticker_error': "Please select at least one ticker.",
@@ -48,47 +49,16 @@ TRANSLATIONS = {
         'input_error': "Error: The number of entries ({entries}) does not match the number of tickers ({tickers}).",
         'value_error': "Your portfolio's total value is 0. Cannot calculate weights.",
         'running_sim': "Running simulation for {num_ports} portfolios...",
-        'current_analysis_header': "Your Current Portfolio Analysis",
-        'current_total_value': "Total Portfolio Value",
-        'current_return': "Current Annual Return",
-        'current_risk': "Current Annual Risk",
-        'current_sharpe': "Current Sharpe Ratio",
-        'current_weights_header': "Your Calculated Portfolio Weights",
-        'col_action': "Asset",
-        'col_weight': "Weight (%)",
-        'col_amount': "Amount (€/$)",
         'optimal_header': "Optimized Portfolio Results",
         'optimal_subheader': "Optimal portfolio (best Sharpe Ratio) found from {num_ports} simulations.",
         'optimal_return': "Optimal Annual Return",
         'optimal_risk': "Optimal Annual Risk",
         'optimal_sharpe': "Best Sharpe Ratio",
         'optimal_alloc_header': "Optimal Portfolio Allocation",
-        'col_amount_optimal': "Optimal Amount (€/$)",
         'alloc_chart_title': "Allocation (Weights) in %",
-        'frontier_header': "Efficient Frontier & Comparison",
-        'frontier_subheader': "Each point is a simulated portfolio. Compare your portfolio (⭐) to the optimal (⚪).",
-        'frontier_chart_title': "Efficient Frontier (Curve for 2 assets, Cloud for 3+)",
-        'frontier_xaxis': "Annual Volatility (Risk)",
-        'frontier_yaxis': "Expected Annual Return",
-        'legend_title': "Legend",
+        'frontier_chart_title': "Efficient Frontier",
         'legend_optimal': "Optimal Portfolio",
-        'legend_current': "My Current Portfolio",
-        'extra_charts_header': "Historical Price Action & Daily Returns",
-        'prices_chart_title': "Adjusted Close Price History",
-        'prices_chart_yaxis': "Price",
-        'prices_chart_xaxis': "Date",
-        'prices_chart_legend': "Asset",
-        'corr_header': "Correlation Matrix",
-        'corr_company': "Company",
-        'conclusion_header': "Conclusion & Action Plan",
-        'conclusion_subheader': "To rebalance your {value:,.2f} (€/$) portfolio to the optimal allocation:",
-        'action_header': "Recommended Actions:",
-        'col_current_pos': "Current Position",
-        'col_optimal_pos': "Optimal Position",
-        'col_action_req': "Action Required",
-        'action_buy': "🟢 BUY {diff:,.2f}",
-        'action_sell': "🔴 SELL {abs_diff:,.2f}",
-        'action_hold': "⚪ HOLD"
+        'run_info': "Please select your assets and run the optimization."
     },
     'fr': {
         'title': "Optimiseur de Portefeuille",
@@ -98,74 +68,40 @@ TRANSLATIONS = {
         'sidebar_header': "Paramètres de l'Optimisation",
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
-        'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par virgule)",
-        'ticker_validate_button': "Valider les Actifs",
-        'tickers_locked': "Actifs Sélectionnés :",
-        'tickers_modify_button': "Modifier la Sélection",
+        'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par des virgules)",
+        'ticker_validate_button': "Ajouter les tickers manuels",
+        'ticker_global_validate': "Valider la sélection",
+        'tickers_locked': "Actifs sélectionnés :",
+        'tickers_modify_button': "Modifier la sélection",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
         'sim_params_header': "2. Paramètres de simulation",
-        'period_label': "Période (ex: '504d', '2y', '5y')",
+        'period_label': "Période (ex : '504d', '2y', '5y')",
         'ports_label': "Nombre de portefeuilles à simuler",
-        'current_header': "3. Votre Portefeuille Actuel (Optionnel)",
+        'current_header': "3. Votre portefeuille actuel (optionnel)",
         'compare_label': "Comparer avec un portefeuille actuel",
         'input_mode_label': "Comment voulez-vous entrer vos actifs ?",
-        'mode_amount': "Par Montant (€/$)",
-        'mode_shares': "Par Nombre d'Actions",
+        'mode_amount': "Par montant (€/$)",
+        'mode_shares': "Par nombre d’actions",
         'amount_label': "Montant pour {ticker}",
-        'shares_label': "Nombre d'actions {ticker}",
-        'run_button': "Lancer l'Optimisation",
-        'run_info': "Veuillez sélectionner vos actifs dans la barre latérale et lancer l'optimisation.",
+        'shares_label': "Nombre d’actions pour {ticker}",
+        'run_button': "Lancer l’optimisation",
+        'run_info': "Veuillez sélectionner vos actifs dans la barre latérale et lancer l’optimisation.",
         'loading_data': "Téléchargement des données pour {tickers}...",
-        'loading_error': "Erreur lors du téléchargement des données : {e}",
-        'input_error': "Erreur : Le nombre d'entrées ({entries}) ne correspond pas au nombre de tickers ({tickers}).",
-        'value_error': "La valeur totale de votre portefeuille est 0. Impossible de calculer les poids.",
-        'running_sim': "Simulation de {num_ports} portefeuilles...",
-        'current_analysis_header': "Analyse de Votre Portefeuille Actuel",
-        'current_total_value': "Valeur Totale de Votre Portefeuille",
-        'current_return': "Rendement Annuel Actuel",
-        'current_risk': "Risque Annuel Actuel",
-        'current_sharpe': "Ratio de Sharpe Actuel",
-        'current_weights_header': "Poids calculés de votre portefeuille",
-        'col_action': "Actif",
-        'col_weight': "Poids (%)",
-        'col_amount': "Montant (€/$)",
-        'optimal_header': "Résultats de l'Optimisation (Portefeuille Optimal)",
-        'optimal_subheader': "Portefeuille optimal (meilleur Ratio de Sharpe) trouvé parmi {num_ports} simulations.",
-        'optimal_return': "Rendement Optimal Annuel",
-        'optimal_risk': "Volatilité Optimale",
-        'optimal_sharpe': "Meilleur Ratio de Sharpe",
-        'optimal_alloc_header': "Allocation du Portefeuille Optimal",
-        'col_amount_optimal': "Montant Optimal (€/$)",
-        'alloc_chart_title': "Allocation (Poids) en %",
-        'frontier_header': "Frontière Efficiente & Comparaison",
-        'frontier_subheader': "Chaque point est un portefeuille simulé. Comparez votre portefeuille (⭐) à l'optimal (⚪).",
-        'frontier_chart_title': "Frontière Efficiente (Courbe si 2 actifs, Nuage si 3+)",
-        'frontier_xaxis': "Volatilité Annuelle (Risque)",
-        'frontier_yaxis': "Rendement Annuel Espéré",
-        'legend_title': "Légende",
-        'legend_optimal': "Portefeuille Optimal",
-        'legend_current': "Mon Portefeuille Actuel",
-        'extra_charts_header': "Évolution historique des prix et retours journaliers",
-        'prices_chart_title': "Évolution des prix de clôture (Ajustés)",
-        'prices_chart_yaxis': "Prix",
-        'prices_chart_xaxis': "Date",
-        'prices_chart_legend': "Actif",
-        'corr_header': "Matrice de Corrélation",
-        'corr_company': "Compagnie",
-        'conclusion_header': "Conclusion & Plan d'Action",
-        'conclusion_subheader': "Pour rééquilibrer votre portefeuille (valeur : {value:,.2f} €/$) vers l'allocation optimale :",
-        'action_header': "Actions Recommandées :",
-        'col_current_pos': "Position Actuelle",
-        'col_optimal_pos': "Position Optimale",
-        'col_action_req': "Action Requise",
-        'action_buy': "🟢 ACHETER {diff:,.2f}",
-        'action_sell': "🔴 VENDRE {abs_diff:,.2f}",
-        'action_hold': "⚪ CONSERVER"
+        'loading_error': "Erreur lors du chargement des données : {e}",
+        'optimal_header': "Résultats du portefeuille optimal",
+        'optimal_subheader': "Portefeuille optimal (meilleur ratio de Sharpe) trouvé parmi {num_ports} simulations.",
+        'optimal_return': "Rendement annuel optimal",
+        'optimal_risk': "Risque annuel optimal",
+        'optimal_sharpe': "Meilleur ratio de Sharpe",
+        'optimal_alloc_header': "Allocation du portefeuille optimal",
+        'alloc_chart_title': "Répartition (poids en %)",
+        'frontier_chart_title': "Frontière efficiente",
+        'legend_optimal': "Portefeuille optimal"
     }
 }
 
 # ---------------------------
-# TICKERS PAR DÉFAUT
+# TICKERS PRÉDÉFINIS
 # ---------------------------
 PREDEFINED_TICKERS = {
     "AAPL": "Apple", "MSFT": "Microsoft", "GOOGL": "Alphabet",
@@ -195,7 +131,8 @@ def run_simulation(log_ret, num_ports, num_assets):
 # BARRE LATÉRALE
 # ---------------------------
 st.sidebar.header("Portfolio Optimizer")
-lang_choice = st.sidebar.selectbox("Language", ['English', 'Français'])
+
+lang_choice = st.sidebar.selectbox("Language / Langue", ['English', 'Français'])
 lang = 'en' if lang_choice == 'English' else 'fr'
 T = TRANSLATIONS[lang]
 
@@ -208,22 +145,27 @@ if 'run_simulation' not in st.session_state:
 
 # --- ÉTAPE 1 ---
 if st.session_state.step == 1:
-    with st.sidebar.form('ticker_form'):
-        selected_tickers_multi = st.multiselect(
-            T['ticker_select_label'],
-            options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.locked_tickers))),
-            default=st.session_state.locked_tickers,
-            format_func=lambda t: f"{t} - {PREDEFINED_TICKERS.get(t, 'Custom')}"
-        )
-        custom_tickers_string = st.text_input(T['ticker_manual_label'])
-        validate_button = st.form_submit_button(T['ticker_validate_button'])
+    st.sidebar.subheader(T['ticker_select_label'])
+    selected_tickers_multi = st.sidebar.multiselect(
+        "Predefined tickers:",
+        options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.locked_tickers))),
+        default=st.session_state.locked_tickers,
+        format_func=lambda t: f"{t} - {PREDEFINED_TICKERS.get(t, 'Custom')}"
+    )
 
-    if validate_button:
+    custom_tickers_string = st.sidebar.text_input(T['ticker_manual_label'])
+    add_button = st.sidebar.button(T['ticker_validate_button'])
+    validate_all_button = st.sidebar.button(T['ticker_global_validate'])
+
+    # 🧩 Correction : le bouton Entrée valide SEULEMENT les tickers manuels
+    if add_button and custom_tickers_string:
         custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
-        if st.session_state.locked_tickers:
-            tickers = sorted(list(set(st.session_state.locked_tickers + selected_tickers_multi + custom_tickers)))
-        else:
-            tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
+        new_list = sorted(list(set(st.session_state.locked_tickers + selected_tickers_multi + custom_tickers)))
+        st.session_state.locked_tickers = new_list
+        st.sidebar.success(f"✅ Added tickers: {', '.join(custom_tickers)}")
+
+    if validate_all_button:
+        tickers = sorted(list(set(st.session_state.locked_tickers + selected_tickers_multi)))
         if not tickers:
             st.sidebar.error(T['ticker_error'])
         else:
@@ -249,20 +191,6 @@ elif st.session_state.step == 2:
         st.sidebar.subheader(T['sim_params_header'])
         period = st.text_input(T['period_label'], "504d")
         num_ports = st.slider(T['ports_label'], 1000, 20000, 10000, 1000)
-
-        current_inputs = []
-        tickers_in_form = st.session_state.locked_tickers
-        if use_current_portfolio and input_mode:
-            st.sidebar.header(T['current_header'])
-            if input_mode == T['mode_amount']:
-                for t in tickers_in_form:
-                    val = st.number_input(f"{T['amount_label'].format(ticker=t)}", 0.0, value=1000.0, step=10.0)
-                    current_inputs.append(val)
-            else:
-                for t in tickers_in_form:
-                    val = st.number_input(f"{T['shares_label'].format(ticker=t)}", 0.0, value=10.0, step=0.1)
-                    current_inputs.append(val)
-
         run_button = st.form_submit_button(T['run_button'])
         if run_button:
             st.session_state.run_simulation = True
@@ -277,7 +205,12 @@ if st.session_state.run_simulation:
     tickers = st.session_state.locked_tickers
     st.info(T['loading_data'].format(tickers=", ".join(tickers)))
     try:
-        data = yf.download(tickers, period=period)['Adj Close']
+        data = yf.download(tickers, period=period)
+        # 🩹 Correction du bug 'Adj Close' : gestion cas 1 ticker
+        if isinstance(data.columns, pd.MultiIndex):
+            data = data['Adj Close']
+        else:
+            data = data.rename('Adj Close').to_frame()
         log_ret = np.log(data / data.shift(1)).dropna()
     except Exception as e:
         st.error(T['loading_error'].format(e=str(e)))
@@ -290,9 +223,10 @@ if st.session_state.run_simulation:
 
     st.header(T['optimal_header'])
     st.subheader(T['optimal_subheader'].format(num_ports=num_ports))
-    st.metric(T['optimal_return'], f"{opt_return*100:.2f}%")
-    st.metric(T['optimal_risk'], f"{opt_vol*100:.2f}%")
-    st.metric(T['optimal_sharpe'], f"{opt_sharpe:.2f}")
+    c1, c2, c3 = st.columns(3)
+    c1.metric(T['optimal_return'], f"{opt_return*100:.2f}%")
+    c2.metric(T['optimal_risk'], f"{opt_vol*100:.2f}%")
+    c3.metric(T['optimal_sharpe'], f"{opt_sharpe:.2f}")
 
     df_opt = pd.DataFrame({'Asset': tickers, 'Weight (%)': opt_weights * 100})
     st.subheader(T['optimal_alloc_header'])
@@ -302,7 +236,8 @@ if st.session_state.run_simulation:
     st.plotly_chart(fig, use_container_width=True)
 
     frontier_fig = px.scatter(x=all_vols, y=all_returns, color=all_sharpes, title=T['frontier_chart_title'])
-    frontier_fig.add_trace(go.Scatter(x=[opt_vol], y=[opt_return], mode='markers', marker=dict(color='white', size=15), name=T['legend_optimal']))
+    frontier_fig.add_trace(go.Scatter(x=[opt_vol], y=[opt_return], mode='markers',
+                                      marker=dict(color='white', size=15), name=T['legend_optimal']))
     st.plotly_chart(frontier_fig, use_container_width=True)
 
 else:
