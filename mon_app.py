@@ -72,19 +72,21 @@ if 'selected_tickers' not in st.session_state:
 # Le sélecteur "intelligent"
 selected_tickers_multi = st.sidebar.multiselect(
     "1. Sélectionnez ou recherchez des actions",
-    options=list(PREDEFINED_TICKERS.keys()),
+    # --- CORRECTION DU BUG ICI ---
+    # La liste 'options' doit contenir TOUS les tickers possibles (prédéfinis + ceux déjà en session)
+    options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.selected_tickers))),
+    # --- FIN CORRECTION ---
     default=st.session_state.selected_tickers,
     format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
 )
 
-# --- NOUVEAU : Ajout manuel de Tickers ---
+# Ajout manuel de Tickers
 custom_tickers_string = st.sidebar.text_input("Ou ajoutez des tickers manuellement (ex: TCKR1, TCKR2)")
 custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
 
 # On combine les deux listes et on enlève les doublons
 tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
 st.session_state.selected_tickers = tickers # On sauvegarde la liste combinée
-# --- FIN NOUVEAU ---
 
 st.sidebar.subheader("Ou ajoutez via les catégories")
 with st.sidebar.expander("ETFs Populaires"):
@@ -146,7 +148,6 @@ run_button = st.sidebar.button("Lancer l'Optimisation")
 
 # --- 3. CORPS PRINCIPAL DE L'APPLICATION ---
 
-# --- NOUVEAU : Correction Photo Markowitz ---
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     st.image(
@@ -158,7 +159,6 @@ with col_titre:
     st.title("📊 Optimiseur de Portefeuille")
     st.markdown("Créé par **Léo-Paul Laisne** | [Profil LinkedIn](https://www.linkedin.com/in/leopaullaisne)")
     st.markdown("*Basé sur la Théorie Moderne du Portefeuille (Markowitz)*")
-# --- FIN NOUVEAU ---
 
 
 if not run_button:
@@ -302,86 +302,3 @@ fig_scatter.update_layout(
 )
 fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=max_sr_vol, y1=max_sr_ret,
-                      line=dict(color="lime", width=2, dash="dot"))
-
-fig_scatter.add_trace(go.Scatter(
-    x=[max_sr_vol], 
-    y=[max_sr_ret],
-    mode='markers',
-    marker=dict(color='white', size=10, line=dict(color='black', width=2)),
-    name='Portefeuille Optimal'
-))
-
-if use_current_portfolio and current_return is not None:
-    fig_scatter.add_trace(go.Scatter(
-        x=[current_risk], 
-        y=[current_return],
-        mode='markers',
-        marker=dict(color='cyan', size=12, symbol='star', line=dict(color='black', width=1)),
-        name='Mon Portefeuille Actuel'
-    ))
-
-st.plotly_chart(fig_scatter, use_container_width=True)
-
-with st.expander("Afficher l'évolution historique des prix et retours journaliers"):
-    
-    st.subheader(f"Prix de clôture (sur {period})")
-    fig_prices = px.line(stocks[tickers], title="Évolution des prix de clôture (Ajustés)")
-    fig_prices.update_layout(template='plotly_dark', yaxis_title="Prix ($)", xaxis_title="Date", legend_title="Action")
-    st.plotly_chart(fig_prices, use_container_width=True)
-
-    st.subheader("Valeurs de Début de Période (5 premiers jours)")
-    st.dataframe(stocks[tickers].head(5).style.format("{:.2f}"))
-
-    st.subheader("Valeurs de Fin de Période (5 derniers jours)")
-    st.dataframe(stocks[tickers].tail(5).style.format("{:.2f}"))
-    st.divider()
-
-    st.subheader("Retours de Début de Période (5 premiers jours, en %)")
-    daily_pct_change = stocks[tickers].pct_change().dropna() * 100
-    st.dataframe(daily_pct_change.head(5).style.format("{:.2f}%"))
-    
-    st.subheader("Retours de Fin de Période (5 derniers jours, en %)")
-    st.dataframe(daily_pct_change.tail(5).style.format("{:.2f}%"))
-
-with st.expander("Afficher la Matrice de Corrélation"):
-    df_corr = log_ret[tickers].corr()
-    fig_heatmap = px.imshow(df_corr, text_auto=True, color_continuous_scale='Mint',
-                            labels=dict(y='Compagny', x='Compagny'))
-    fig_heatmap.update_layout(template='plotly_dark')
-    st.plotly_chart(fig_heatmap, use_container_width=True)
-
-if use_current_portfolio and current_return is not None:
-    st.header("Conclusion & Plan d'Action")
-    st.write(f"Pour rééquilibrer votre portefeuille (valeur : {total_portfolio_value:,.2f} €/$) vers l'allocation optimale :")
-
-    optimal_values = best_weights * total_portfolio_value
-    
-    st.subheader("Actions Recommandées :")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    col1.write("**Action**")
-    col2.write("**Position Actuelle**")
-    col3.write("**Position Optimale**")
-    col4.write("**Action Requise**")
-    st.divider()
-
-    for i, ticker in enumerate(tickers):
-        current_val = monetary_values[i]
-        optimal_val = optimal_values[i]
-        diff = optimal_val - current_val
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.write(f"**{ticker}**")
-        with col2:
-            st.write(f"{current_val:,.2f}")
-        with col3:
-            st.write(f"{optimal_val:,.2f}")
-        with col4:
-            if diff > 0.01:
-                st.success(f"🟢 ACHETER {diff:,.2f}")
-            elif diff < -0.01:
-                st.error(f"🔴 VENDRE {abs(diff):,.2f}")
-            else:
-                st.info("⚪ CONSERVER")
