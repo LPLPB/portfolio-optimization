@@ -23,11 +23,14 @@ TRANSLATIONS = {
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
         'ticker_manual_label': "Or add tickers manually (comma separated)",
+        'ticker_validate_button': "Validate Tickers",
+        'tickers_locked': "Selected Assets:",
+        'tickers_modify_button': "Modify Selection",
         'ticker_error': "Please select at least one ticker.",
         'sim_params_header': "2. Simulation Parameters",
         'period_label': "Period (e.g., '504d', '2y', '5y')",
         'ports_label': "Number of portfolios to simulate",
-        'current_header': "Your Current Portfolio (Optional)",
+        'current_header': "3. Your Current Portfolio (Optional)",
         'compare_label': "Compare with a current portfolio",
         'input_mode_label': "How to enter your assets?",
         'mode_amount': "By Amount (€/$)",
@@ -35,7 +38,7 @@ TRANSLATIONS = {
         'amount_label': "Enter amount for {ticker}",
         'shares_label': "Number of shares for {ticker}",
         'run_button': "Run Optimization",
-        'run_info': "Please select your assets, fill the form, and click 'Run Optimization'.",
+        'run_info': "Please select your assets in the sidebar and run the optimization.",
         'loading_data': "Loading data for {tickers}...",
         'loading_error': "Error loading data: {e}",
         'input_error': "Error: The number of entries ({entries}) does not match the number of tickers ({tickers}).",
@@ -96,11 +99,14 @@ TRANSLATIONS = {
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
         'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par virgule)",
+        'ticker_validate_button': "Valider les Actifs",
+        'tickers_locked': "Actifs Sélectionnés :",
+        'tickers_modify_button': "Modifier la Sélection",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
         'sim_params_header': "2. Paramètres de simulation",
         'period_label': "Période (ex: '504d', '2y', '5y')",
         'ports_label': "Nombre de portefeuilles à simuler",
-        'current_header': "Votre Portefeuille Actuel (Optionnel)",
+        'current_header': "3. Votre Portefeuille Actuel (Optionnel)",
         'compare_label': "Comparer avec un portefeuille actuel",
         'input_mode_label': "Comment voulez-vous entrer vos actifs ?",
         'mode_amount': "Par Montant (€/$)",
@@ -108,7 +114,7 @@ TRANSLATIONS = {
         'amount_label': "Montant pour {ticker}",
         'shares_label': "Nombre d'actions {ticker}",
         'run_button': "Lancer l'Optimisation",
-        'run_info': "Veuillez sélectionner vos actifs, remplir le formulaire, et cliquer sur 'Lancer l'Optimisation'.",
+        'run_info': "Veuillez sélectionner vos actifs dans la barre latérale et lancer l'optimisation.",
         'loading_data': "Téléchargement des données pour {tickers}...",
         'loading_error': "Erreur lors du téléchargement des données : {e}",
         'input_error': "Erreur : Le nombre d'entrées ({entries}) ne correspond pas au nombre de tickers ({tickers}).",
@@ -225,67 +231,87 @@ lang_choice = st.sidebar.selectbox(
 lang = 'en' if lang_choice == 'English' else 'fr'
 T = TRANSLATIONS[lang] 
 
-if 'selected_tickers' not in st.session_state:
-    st.session_state.selected_tickers = [] 
+# Initialisation du state
+if 'step' not in st.session_state:
+    st.session_state.step = 1
+if 'locked_tickers' not in st.session_state:
+    st.session_state.locked_tickers = []
+if 'run_simulation' not in st.session_state:
+    st.session_state.run_simulation = False
 
-# --- NOUVELLE LOGIQUE : TOUT DANS LE FORMULAIRE ---
-with st.sidebar.form(key='params_form'):
-    
-    selected_tickers_multi = st.multiselect(
-        T['ticker_select_label'],
-        options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.selected_tickers))),
-        default=st.session_state.selected_tickers,
-        format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
-    )
 
-    custom_tickers_string = st.text_input(T['ticker_manual_label'])
-    
-    st.sidebar.divider()
-    st.sidebar.subheader(T['sim_params_header'])
+# --- NOUVELLE LOGIQUE D'ÉTAPE (WIZARD) ---
 
-    period = st.text_input(
-        T['period_label'],
-        "504d"
-    )
-
-    num_ports = st.slider(
-        T['ports_label'],
-        1000, 20000, 10000, 1000
-    )
-
-    st.sidebar.header(T['current_header'])
-    use_current_portfolio = st.checkbox(T['compare_label'])
-
-    current_inputs = []
-    input_mode = None
-    monetary_values = []
-    
-    # On combine les tickers ici, à l'intérieur du formulaire
-    custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
-    tickers_in_form = sorted(list(set(selected_tickers_multi + custom_tickers)))
-    st.session_state.selected_tickers = tickers_in_form # Sauvegarde pour le prochain rechargement
-
-    if use_current_portfolio:
-        input_mode = st.radio(
-            T['input_mode_label'],
-            (T['mode_amount'], T['mode_shares']),
-            key='input_mode_radio' # Clé unique pour le state
+# ÉTAPE 1 : Sélection des Tickers
+if st.session_state.step == 1:
+    with st.sidebar.form(key='ticker_form'):
+        selected_tickers_multi = st.multiselect(
+            T['ticker_select_label'],
+            options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.locked_tickers))),
+            default=st.session_state.locked_tickers,
+            format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
         )
-        
-        if input_mode == T['mode_amount']:
-            st.write(T['mode_amount'] + ":")
-            for ticker in tickers_in_form:
-                amount = st.number_input(T['amount_label'].format(ticker=ticker), min_value=0.0, value=1000.0, step=10.0, key=f"amount_{ticker}")
-                current_inputs.append(amount)
-        
-        elif input_mode == T['mode_shares']:
-            st.write(T['mode_shares'] + ":")
-            for ticker in tickers_in_form:
-                shares = st.number_input(T['shares_label'].format(ticker=ticker), min_value=0.0, value=10.0, step=0.1, key=f"shares_{ticker}")
-                current_inputs.append(shares)
 
-    run_button = st.form_submit_button(T['run_button'])
-# --- FIN DU FORMULAIRE ---
+        custom_tickers_string = st.text_input(T['ticker_manual_label'])
+        
+        validate_button = st.form_submit_button(T['ticker_validate_button'])
+
+    if validate_button:
+        custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
+        tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
+        
+        if not tickers:
+            st.sidebar.error(T['ticker_error'])
+        else:
+            st.session_state.locked_tickers = tickers
+            st.session_state.step = 2
+            st.rerun() # Force le rechargement pour passer à l'étape 2
+
+# ÉTAPE 2 : Paramètres et Lancement
+elif st.session_state.step == 2:
+    st.sidebar.subheader(T['tickers_locked'])
+    st.sidebar.info(f"{', '.join(st.session_state.locked_tickers)}")
+    if st.sidebar.button(T['tickers_modify_button']):
+        st.session_state.step = 1
+        st.rerun()
+
+    # Case à cocher interactive
+    use_current_portfolio = st.sidebar.checkbox(T['compare_label'], key='compare_checkbox')
+    
+    with st.sidebar.form(key='params_form'):
+        st.sidebar.subheader(T['sim_params_header'])
+        period = st.text_input(T['period_label'], "504d")
+        num_ports = st.slider(T['ports_label'], 1000, 20000, 10000, 1000)
+
+        current_inputs = []
+        input_mode = None
+        monetary_values = []
+        
+        tickers_in_form = st.session_state.locked_tickers
+
+        if use_current_portfolio: # Utilise la valeur de la checkbox
+            st.sidebar.header(T['current_header'])
+            input_mode = st.radio(
+                T['input_mode_label'],
+                (T['mode_amount'], T['mode_shares']),
+                key='input_mode_radio'
+            )
+            
+            if input_mode == T['mode_amount']:
+                st.write(T['mode_amount'] + ":")
+                for ticker in tickers_in_form:
+                    amount = st.number_input(T['amount_label'].format(ticker=ticker), min_value=0.0, value=1000.0, step=10.0, key=f"amount_{ticker}")
+                    current_inputs.append(amount)
+            
+            elif input_mode == T['mode_shares']:
+                st.write(T['mode_shares'] + ":")
+                for ticker in tickers_in_form:
+                    shares = st.number_input(T['shares_label'].format(ticker=ticker), min_value=0.0, value=10.0, step=0.1, key=f"shares_{ticker}")
+                    current_inputs.append(shares)
+
+        run_button = st.form_submit_button(T['run_button'])
+        if run_button:
+            st.session_state.run_simulation = True # On sauvegarde le fait qu'on a cliqué
 
 
 # --- 4. CORPS PRINCIPAL DE L'APPLICATION ---
@@ -303,12 +329,12 @@ with col_titre:
     st.markdown(f"*{T['subtitle']}*")
 
 
-if not run_button:
+if not st.session_state.run_simulation:
     st.info(T['run_info'])
     st.stop()
 
-# Le code ne s'exécute que si le bouton est cliqué
-tickers = tickers_in_form # On utilise les tickers qui étaient dans le formulaire au moment du clic
+# Le code ne s'exécute que si on a cliqué sur "Run"
+tickers = st.session_state.locked_tickers
 
 if not tickers:
     st.error(T['ticker_error'])
