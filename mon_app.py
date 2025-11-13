@@ -277,10 +277,7 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
     st.sidebar.subheader(T['tickers_locked'])
     
-    # --- DÉBUT DE LA CORRECTION ---
-    # Remplacement de ".ーん".join(...) par ", ".join(...)
     st.sidebar.info(", ".join(st.session_state.locked_tickers))
-    # --- FIN DE LA CORRECTION ---
 
     if st.sidebar.button(T['tickers_modify_button']):
         st.session_state.step = 1
@@ -497,22 +494,27 @@ fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
                        hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
                      )
 
-# --- CORRECTION DE LA LÉGENDE (MAINTENUE) ---
+# --- DEBUT DE LA CORRECTION ---
 fig_scatter.update_layout(
     title=T['frontier_chart_title'],
     xaxis_title=T['frontier_xaxis'],
     yaxis_title=T['frontier_yaxis'],
     template='plotly_dark',
+    
+    # Ajout d'une marge en haut pour que la légende (à y=1.02)
+    # ne soit pas superposée par les points de données.
+    margin=dict(t=100), # 100 pixels en haut
+    
     legend=dict(
         title=T['legend_title'],
-        yanchor="bottom", y=1.02,  # Position au-dessus
-        xanchor="right", x=1,      # Position à droite
-        bgcolor="black",          # Fond OPAQUE
-        bordercolor="white", borderwidth=1,
-        layer="above"             # Force la légende à être au-dessus
+        yanchor="bottom", y=1.02,  # Position au-dessus (correct)
+        xanchor="right", x=1,      # Position à droite (correct)
+        bgcolor="black",          # Fond OPAQUE (correct)
+        bordercolor="white", borderwidth=1
+        # Suppression de 'layer="above"' qui causait le ValueError
     )
 )
-# --- FIN CORRECTION LÉGENDE ---
+# --- FIN DE LA CORRECTION ---
 
 fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=opt_vol, y1=opt_return,
