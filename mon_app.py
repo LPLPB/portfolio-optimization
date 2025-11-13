@@ -483,33 +483,41 @@ st.plotly_chart(fig_weights, use_container_width=True)
 st.header(T['frontier_header'])
 st.write(T['frontier_subheader'])
 
-# --- DEBUT DE LA CORRECTION MAJEURE ---
-
-# 1. Créer une figure de base vide
-fig_scatter = go.Figure()
-
-# 2. Créer le nuage de points avec px.scatter juste pour "voler" sa trace
 df_plot = pd.DataFrame({
     'Return': all_returns,
     'Risk': all_vols,
     'Sharpe': all_sharpes
 })
-px_fig = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
-                    color_continuous_scale='RdYlGn',
-                    labels={'Sharpe': 'Ratio de Sharpe'},
-                    hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
-                   )
+fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
+                       color_continuous_scale='RdYlGn',
+                       labels={'Sharpe': 'Ratio de Sharpe'},
+                       hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
+                     )
 
-# 3. Ajouter la trace du nuage de points (px_fig.data[0]) à notre figure principale *en premier*
-fig_scatter.add_trace(px_fig.data[0])
+# --- DEBUT DE LA CORRECTION ---
+fig_scatter.update_layout(
+    title=T['frontier_chart_title'],
+    xaxis_title=T['frontier_xaxis'],
+    yaxis_title=T['frontier_yaxis'],
+    template='plotly_dark',
+    
+    # Suppression de la marge qui ne fonctionnait pas
+    
+    legend=dict(
+        title=T['legend_title'],
+        yanchor="top", y=0.98,      # Position INSIDE (en haut)
+        xanchor="left", x=0.02,     # Position INSIDE (à gauche)
+        bgcolor="rgba(0,0,0,0.7)",  # Fond semi-transparent
+        bordercolor="white", borderwidth=1
+    )
+)
+# --- FIN DE LA CORRECTION ---
 
-# 4. Ajouter la ligne pointillée
 fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=opt_vol, y1=opt_return,
                       line=dict(color="lime", width=2, dash="dot"),
                       layer="below") # Mettre la ligne en dessous des points
 
-# 5. Ajouter le point "Optimal"
 fig_scatter.add_trace(go.Scatter(
     x=[opt_vol], 
     y=[opt_return],
@@ -520,7 +528,6 @@ fig_scatter.add_trace(go.Scatter(
     showlegend=True
 ))
 
-# 6. Ajouter le point "Actuel" (s'il existe)
 if use_current_portfolio and current_return is not None:
     fig_scatter.add_trace(go.Scatter(
         x=[current_risk], 
@@ -531,27 +538,6 @@ if use_current_portfolio and current_return is not None:
         legendgroup='current',
         showlegend=True
     ))
-
-# 7. Mettre à jour TOUT le layout, y compris la légende et la barre de couleur
-fig_scatter.update_layout(
-    title=T['frontier_chart_title'],
-    xaxis_title=T['frontier_xaxis'],
-    yaxis_title=T['frontier_yaxis'],
-    template='plotly_dark',
-    
-    # Copier la barre de couleur (coloraxis) depuis la figure px
-    coloraxis=px_fig.layout.coloraxis, 
-    
-    legend=dict(
-        title=T['legend_title'],
-        yanchor="top", y=0.98,      # Position INSIDE (en haut)
-        xanchor="left", x=0.02,     # Position INSIDE (à gauche)
-        bgcolor="rgba(0,0,0,0.7)",  # Fond semi-transparent
-        bordercolor="white", borderwidth=1
-    )
-)
-
-# --- FIN DE LA CORRECTION MAJEURE ---
 
 st.plotly_chart(fig_scatter, use_container_width=True)
 
@@ -600,7 +586,7 @@ if use_current_portfolio and current_return is not None:
     
     col1, col2, col3, col4 = st.columns(4)
     col1.write(f"**{T['col_action']}**")
-    col2.write(f"**{T['col_tiny_pos']}**")
+    col2.write(f"**{T['col_current_pos']}**")
     col3.write(f"**{T['col_optimal_pos']}**")
     col4.write(f"**{T['col_action_req']}**")
     st.divider()
