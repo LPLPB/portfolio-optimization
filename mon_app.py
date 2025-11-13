@@ -162,7 +162,7 @@ TRANSLATIONS = {
     }
 }
 
-# --- NOUVEAU : BASE DE DONNÉES DE TICKERS ÉTENDUE ---
+# --- BASE DE DONNÉES DE TICKERS ÉTENDUE ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
     'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
