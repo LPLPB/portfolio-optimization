@@ -30,13 +30,57 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- 2. BARRE LATÉRALE (Inputs) ---
 st.sidebar.header("Paramètres de l'Optimisation")
 
-tickers_string = st.sidebar.text_input(
-    "Entrez les Tickers des actions (séparés par une virgule)",
-    "DCAM.PA, TSLA"
+# --- NOUVEAU : Sélecteur de Tickers Amélioré ---
+# Pré-définir une liste d'options populaires pour le filtre
+PREDEFINED_TICKERS = [
+    'AAPL', 'MSFT', 'GOOG', 'TSLA', 'AMZN', 'NVDA', # US Tech
+    'SPY', 'QQQ', 'URTH', 'EEM', # ETFs (S&P 500, Nasdaq, MSCI World, Emergents)
+    'DCAM.PA', 'MC.PA', 'RMS.PA', 'OR.PA', # FR (CAC40)
+    'BTC-USD', 'ETH-USD' # Crypto
+]
+
+# Initialiser la session pour les tickers
+if 'selected_tickers' not in st.session_state:
+    st.session_state.selected_tickers = ['DCAM.PA', 'TSLA']
+
+# Le sélecteur multi-choix qui remplace st.text_input
+# Il gère le filtrage et l'ajout de nouvelles valeurs
+tickers = st.sidebar.multiselect(
+    "Entrez les Tickers (tapez pour filtrer ou ajouter)",
+    options=sorted(list(set(PREDEFINED_TICKERS + st.session_state.selected_tickers))),
+    default=st.session_state.selected_tickers
 )
-tickers = [t.strip().upper() for t in tickers_string.split(',')]
+# Mettre à jour l'état de la session
+st.session_state.selected_tickers = tickers
+
+
+# Section "Actions Rapides"
+st.sidebar.subheader("Actions Rapides (Ajout)")
+QUICK_ADD = {
+    'S&P 500 (ETF)': 'SPY',
+    'Nasdaq (ETF)': 'QQQ',
+    'MSCI World (ETF)': 'URTH',
+    'Apple': 'AAPL',
+    'Microsoft': 'MSFT',
+    'LVMH': 'MC.PA'
+}
+
+# Crée 2 colonnes pour les boutons
+col1, col2 = st.sidebar.columns(2)
+for i, (label, ticker) in enumerate(QUICK_ADD.items()):
+    target_col = col1 if i % 2 == 0 else col2
+    if target_col.button(label, key=ticker):
+        if ticker not in st.session_state.selected_tickers:
+            st.session_state.selected_tickers.append(ticker)
+        # Force l'app à se re-exécuter pour voir le ticker ajouté
+        st.rerun()
+
+st.sidebar.divider() # Séparateur visuel
+
+# --- Fin du Nouveau Sélecteur ---
 
 period = st.sidebar.text_input(
     "Période (ex: '504d', '2y', '5y')",
@@ -64,13 +108,13 @@ if use_current_portfolio and tickers:
     if input_mode == "Par Montant (€/$)":
         st.sidebar.write("Entrez le montant investi pour chaque action :")
         for ticker in tickers:
-            amount = st.sidebar.number_input(f"Montant pour {ticker}", min_value=0.0, value=1000.0, step=10.0)
+            amount = st.sidebar.number_input(f"Montant pour {ticker}", min_value=0.0, value=1000.0, step=10.0, key=f"amount_{ticker}")
             current_inputs.append(amount)
     
     elif input_mode == "Par Nombre d'Actions":
         st.sidebar.write("Entrez le nombre d'actions que vous possédez :")
         for ticker in tickers:
-            shares = st.sidebar.number_input(f"Nombre d'actions {ticker}", min_value=0.0, value=10.0, step=0.1)
+            shares = st.sidebar.number_input(f"Nombre d'actions {ticker}", min_value=0.0, value=10.0, step=0.1, key=f"shares_{ticker}")
             current_inputs.append(shares)
 
 run_button = st.sidebar.button("Lancer l'Optimisation")
@@ -82,12 +126,10 @@ if not run_button:
     st.info("Veuillez entrer les tickers et cliquer sur 'Lancer l'Optimisation' dans la barre latérale.")
     st.stop()
 
-# --- CORRECTION DU BUG ICI ---
-# Le ':' manquant a été ajouté
+# CORRECTION : S'assurer que 'tickers' (la liste) n'est pas vide
 if not tickers:
-    st.error("Veuillez entrer au moins un ticker.")
+    st.error("Veuillez sélectionner au moins un ticker.")
     st.stop()
-# --- FIN DE LA CORRECTION ---
 
 try:
     with st.spinner(f"Téléchargement des données pour {', '.join(tickers)}..."):
@@ -109,7 +151,7 @@ total_portfolio_value = 0
 
 if use_current_portfolio and current_inputs:
     if len(current_inputs) != num_assets:
-        st.error(f"Erreur : Le nombre d'entrées ne correspond pas au nombre de tickers.")
+        st.error(f"Erreur : Le nombre d'entrées ({len(current_inputs)}) ne correspond pas au nombre de tickers ({num_assets}).")
         st.stop()
 
     if input_mode == "Par Montant (€/$)":
@@ -224,10 +266,9 @@ fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=max_sr_vol, y1=max_sr_ret,
                       line=dict(color="lime", width=2, dash="dot"))
 
-# On ajoute les points APRÈS le nuage pour qu'ils soient au-dessus
 fig_scatter.add_trace(go.Scatter(
-    x=[max_sr_vol], 
-    y=[max_sr_ret],
+    x=[max_s_vol], 
+    y=[max_s_ret],
     mode='markers',
     marker=dict(color='white', size=10, line=dict(color='black', width=2)),
     name='Portefeuille Optimal'
