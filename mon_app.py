@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Portfolio Optimizer", page_icon="📊", layout="wide")
 
 # --- 2. DICTIONNAIRE DE TRADUCTION (EN/FR) ---
+# (Conservé du Script 1, car il est complet)
 TRANSLATIONS = {
     'en': {
         'title': "Portfolio Optimizer",
@@ -19,8 +20,8 @@ TRANSLATIONS = {
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
         'ticker_manual_label': "Or add tickers manually (comma separated)",
-        'ticker_validate_button': "Add Manual Tickers",
-        'ticker_global_validate': "Validate Selection",
+        'ticker_validate_button': "Add Manual Tickers", # Clé utilisée par la nouvelle Étape 1
+        'ticker_global_validate': "Validate Selection", # Clé utilisée par la nouvelle Étape 1
         'tickers_locked': "Selected Assets:",
         'tickers_modify_button': "Modify Selection",
         'ticker_error': "Please select at least one ticker.",
@@ -96,8 +97,8 @@ TRANSLATIONS = {
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
         'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par des virgules)",
-        'ticker_validate_button': "Ajouter les tickers manuels",
-        'ticker_global_validate': "Valider la sélection",
+        'ticker_validate_button': "Ajouter les tickers manuels", # Clé utilisée par la nouvelle Étape 1
+        'ticker_global_validate': "Valider la sélection", # Clé utilisée par la nouvelle Étape 1
         'tickers_locked': "Actifs sélectionnés :",
         'tickers_modify_button': "Modifier la sélection",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
@@ -166,6 +167,7 @@ TRANSLATIONS = {
     }
 }
 
+# --- GRANDE LISTE DE TICKERS (Conservée du Script 1) ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
     'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
@@ -201,7 +203,7 @@ PREDEFINED_TICKERS = {
 }
 
 
-# --- CORRECTION DU BUG PANDAS/NUMPY ---
+# --- FONCTION DE SIMULATION OPTIMISÉE (Conservée du Script 1) ---
 @st.cache_data
 def run_simulation(log_ret, num_ports, num_assets):
     all_weights = np.zeros((num_ports, num_assets))
@@ -244,34 +246,37 @@ if 'run_simulation' not in st.session_state:
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = []
 
-# --- ÉTAPE 1 : Sélection (DANS UN FORMULAIRE) ---
+# --- ÉTAPE 1 : Sélection (MODIFIÉE SELON LE SCRIPT 2) ---
 if st.session_state.step == 1:
-    with st.sidebar.form(key='ticker_form'):
-        st.sidebar.subheader(T['ticker_select_label'])
-        selected_tickers_multi = st.multiselect(
-            "Predefined tickers:",
-            options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.locked_tickers))),
-            default=st.session_state.locked_tickers,
-            format_func=lambda t: f"{t} - {PREDEFINED_TICKERS.get(t, 'Custom')}"
-        )
+    st.sidebar.subheader(T['ticker_select_label'])
+    selected_tickers_multi = st.sidebar.multiselect(
+        "Predefined tickers:",
+        options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.locked_tickers))),
+        default=st.session_state.locked_tickers,
+        format_func=lambda t: f"{t} - {PREDEFINED_TICKERS.get(t, 'Custom')}"
+    )
 
-        custom_tickers_string = st.text_input(T['ticker_manual_label'])
-        
-        # On ne valide plus avec 'Entrée' sur le champ manuel, seulement avec ce bouton
-        validate_all_button = st.form_submit_button(T['ticker_global_validate'])
+    custom_tickers_string = st.sidebar.text_input(T['ticker_manual_label'])
+    add_button = st.sidebar.button(T['ticker_validate_button'])
+    validate_all_button = st.sidebar.button(T['ticker_global_validate'])
+
+    if add_button and custom_tickers_string:
+        custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
+        new_list = sorted(list(set(st.session_state.locked_tickers + selected_tickers_multi + custom_tickers)))
+        st.session_state.locked_tickers = new_list
+        # Note : Le message suivant est codé en dur (venant du script 2)
+        st.sidebar.success(f"✅ Added tickers: {', '.join(custom_tickers)}") 
 
     if validate_all_button:
-        custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
-        tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
-        
+        tickers = sorted(list(set(st.session_state.locked_tickers + selected_tickers_multi)))
         if not tickers:
             st.sidebar.error(T['ticker_error'])
         else:
             st.session_state.locked_tickers = tickers
             st.session_state.step = 2
-            st.rerun() # Force le rechargement pour passer à l'étape 2
+            st.rerun()
 
-# --- ÉTAPE 2 : Paramètres (INTERACTIF + FORMULAIRE) ---
+# --- ÉTAPE 2 : Paramètres (Conservée du Script 1) ---
 elif st.session_state.step == 2:
     st.sidebar.subheader(T['tickers_locked'])
     st.sidebar.info(", ".join(st.session_state.locked_tickers))
@@ -334,7 +339,7 @@ elif st.session_state.step == 2:
 
 
 # ---------------------------
-# CORPS PRINCIPAL
+# CORPS PRINCIPAL (Conservé du Script 1)
 # ---------------------------
 
 col_img, col_titre = st.columns([1, 4])
@@ -375,6 +380,7 @@ except Exception as e:
     st.error(T['loading_error'].format(e=e))
     st.stop()
 
+# --- CALCULS DU PORTEFEUILLE ACTUEL (Conservé du Script 1) ---
 current_return, current_risk, current_sharpe = None, None, None
 current_weights_np = None
 total_portfolio_value = 0
@@ -409,6 +415,7 @@ if use_current_portfolio and current_inputs:
     current_return = np.sum((log_ret.mean().values * current_weights_np) * 252)
     current_risk = np.sqrt(np.dot(current_weights_np.T, np.dot(log_ret.cov().values * 252, current_weights_np)))
     current_sharpe = current_return / current_risk if current_risk != 0 else 0
+# --- FIN DES CALCULS ---
 
 
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
@@ -418,6 +425,7 @@ max_sharpe_idx = np.argmax(all_sharpes)
 opt_weights = all_weights[max_sharpe_idx]
 opt_return, opt_vol, opt_sharpe = all_returns[max_sharpe_idx], all_vols[max_sharpe_idx], all_sharpes[max_sharpe_idx]
 
+# --- AFFICHAGE COMPLET (Conservé du Script 1) ---
 
 if use_current_portfolio and current_return is not None:
     st.header(T['current_analysis_header'])
