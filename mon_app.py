@@ -22,7 +22,7 @@ TRANSLATIONS = {
         'sidebar_header': "Optimization Parameters",
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
-        'ticker_manual_label': "Or add tickers manually (e.g., TCKR1, TCKR2)",
+        'ticker_manual_label': "Or add tickers manually (Press Enter to add)",
         'ticker_error': "Please select at least one ticker.",
         'sim_params_header': "2. Simulation Parameters",
         'period_label': "Period (e.g., '504d', '2y', '5y')",
@@ -95,7 +95,7 @@ TRANSLATIONS = {
         'sidebar_header': "Paramètres de l'Optimisation",
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
-        'ticker_manual_label': "Ou ajoutez des tickers manuellement (ex: TCKR1, TCKR2)",
+        'ticker_manual_label': "Ou ajoutez des tickers manuellement (Appuyez sur Entrée pour ajouter)",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
         'sim_params_header': "2. Paramètres de simulation",
         'period_label': "Période (ex: '504d', '2y', '5y')",
@@ -162,89 +162,40 @@ TRANSLATIONS = {
     }
 }
 
-# --- NOUVEAU : BASE DE DONNÉES DE TICKERS ÉTENDUE ---
+# --- DONNÉES PRÉDÉFINIES (Pour la recherche) ---
 PREDEFINED_TICKERS = {
     # ETFs Principaux
-    'SPY': 'ETF - S&P 500 (SPDR)',
-    'QQQ': 'ETF - Nasdaq 100 (Invesco)',
-    'DIA': 'ETF - Dow Jones (SPDR)',
-    'URTH': 'ETF - MSCI World (iShares)',
-    'EEM': 'ETF - MSCI Emerging Markets (iShares)',
-    'EWJ': 'ETF - MSCI Japan (iShares)',
-    'EWG': 'ETF - MSCI Germany (iShares)',
-    'EWU': 'ETF - MSCI UK (iShares)',
-    'GLD': 'ETF - Or (SPDR Gold Shares)',
-    'SLV': 'ETF - Argent (iShares Silver Trust)',
-    
+    'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)', 'DIA': 'ETF - Dow Jones (SPDR)',
+    'URTH': 'ETF - MSCI World (iShares)', 'EEM': 'ETF - MSCI Emerging Markets (iShares)',
+    'EWJ': 'ETF - MSCI Japan (iShares)', 'EWG': 'ETF - MSCI Germany (iShares)',
+    'EWU': 'ETF - MSCI UK (iShares)', 'GLD': 'ETF - Or (SPDR Gold Shares)', 'SLV': 'ETF - Argent (iShares Silver Trust)',
     # US Tech
-    'AAPL': 'Apple (NASDAQ)',
-    'MSFT': 'Microsoft (NASDAQ)',
-    'GOOG': 'Alphabet (Google) (NASDAQ)',
-    'AMZN': 'Amazon (NASDAQ)',
-    'TSLA': 'Tesla (NASDAQ)',
-    'NVDA': 'NVIDIA (NASDAQ)',
-    'META': 'Meta Platforms (NASDAQ)',
-    'ORCL': 'Oracle (NYSE)',
-    'ADBE': 'Adobe (NASDAQ)',
-    'CRM': 'Salesforce (NYSE)',
-    'INTC': 'Intel (NASDAQ)',
-    'AMD': 'AMD (NASDAQ)',
-    'CSCO': 'Cisco (NASDAQ)',
-    
+    'AAPL': 'Apple (NASDAQ)', 'MSFT': 'Microsoft (NASDAQ)', 'GOOG': 'Alphabet (Google) (NASDAQ)',
+    'AMZN': 'Amazon (NASDAQ)', 'TSLA': 'Tesla (NASDAQ)', 'NVDA': 'NVIDIA (NASDAQ)',
+    'META': 'Meta Platforms (NASDAQ)', 'ORCL': 'Oracle (NYSE)', 'ADBE': 'Adobe (NASDAQ)',
+    'CRM': 'Salesforce (NYSE)', 'INTC': 'Intel (NASDAQ)', 'AMD': 'AMD (NASDAQ)', 'CSCO': 'Cisco (NASDAQ)',
     # US Finance
-    'JPM': 'JPMorgan Chase (NYSE)',
-    'BAC': 'Bank of America (NYSE)',
-    'WFC': 'Wells Fargo (NYSE)',
-    'GS': 'Goldman Sachs (NYSE)',
-    'MS': 'Morgan Stanley (NYSE)',
-    'V': 'Visa (NYSE)',
-    'MA': 'Mastercard (NYSE)',
-    'AXP': 'American Express (NYSE)',
-    
+    'JPM': 'JPMorgan Chase (NYSE)', 'BAC': 'Bank of America (NYSE)', 'WFC': 'Wells Fargo (NYSE)',
+    'GS': 'Goldman Sachs (NYSE)', 'MS': 'Morgan Stanley (NYSE)', 'V': 'Visa (NYSE)',
+    'MA': 'Mastercard (NYSE)', 'AXP': 'American Express (NYSE)',
     # US Santé
-    'JNJ': 'Johnson & Johnson (NYSE)',
-    'UNH': 'UnitedHealth Group (NYSE)',
-    'PFE': 'Pfizer (NYSE)',
-    'LLY': 'Eli Lilly (NYSE)',
-    'MRK': 'Merck & Co. (NYSE)',
-    
+    'JNJ': 'Johnson &J ohnson (NYSE)', 'UNH': 'UnitedHealth Group (NYSE)', 'PFE': 'Pfizer (NYSE)',
+    'LLY': 'Eli Lilly (NYSE)', 'MRK': 'Merck & Co. (NYSE)',
     # US Consommation
-    'WMT': 'Walmart (NYSE)',
-    'PG': 'Procter & Gamble (NYSE)',
-    'KO': 'Coca-Cola (NYSE)',
-    'PEP': 'PepsiCo (NASDAQ)',
-    'NKE': 'Nike (NYSE)',
-    'MCD': 'McDonald\'s (NYSE)',
-    'DIS': 'Disney (NYSE)',
-    'COST': 'Costco (NASDAQ)',
-    
+    'WMT': 'Walmart (NYSE)', 'PG': 'Procter & Gamble (NYSE)', 'KO': 'Coca-Cola (NYSE)',
+    'PEP': 'PepsiCo (NASDAQ)', 'NKE': 'Nike (NYSE)', 'MCD': 'McDonald\'s (NYSE)',
+    'DIS': 'Disney (NYSE)', 'COST': 'Costco (NASDAQ)',
     # Euronext Paris
-    'MC.PA': 'LVMH (Euronext Paris)',
-    'OR.PA': 'L\'Oréal (Euronext Paris)',
-    'RMS.PA': 'Hermès (Euronext Paris)',
-    'DCAM.PA': 'Amundi (Euronext Paris)',
-    'TTE.PA': 'TotalEnergies (Euronext Paris)',
-    'SAN.PA': 'Sanofi (Euronext Paris)',
-    'AIR.PA': 'Airbus (Euronext Paris)',
-    'BNP.PA': 'BNP Paribas (Euronext Paris)',
-    'SAF.PA': 'Safran (Euronext Paris)',
-    'KER.PA': 'Kering (Euronext Paris)',
-    'AI.PA': 'Air Liquide (Euronext Paris)',
-    'EL.PA': 'EssilorLuxottica (Euronext Paris)',
-    
+    'MC.PA': 'LVMH (Euronext Paris)', 'OR.PA': 'L\'Oréal (Euronext Paris)', 'RMS.PA': 'Hermès (Euronext Paris)',
+    'DCAM.PA': 'Amundi (Euronext Paris)', 'TTE.PA': 'TotalEnergies (Euronext Paris)', 'SAN.PA': 'Sanofi (Euronext Paris)',
+    'AIR.PA': 'Airbus (Euronext Paris)', 'BNP.PA': 'BNP Paribas (Euronext Paris)',
+    'SAF.PA': 'Safran (Euronext Paris)', 'KER.PA': 'Kering (Euronext Paris)',
+    'AI.PA': 'Air Liquide (Euronext Paris)', 'EL.PA': 'EssilorLuxottica (Euronext Paris)',
     # Asie (Exemples)
-    '7203.T': 'Toyota Motor (Tokyo)',
-    '6758.T': 'Sony (Tokyo)',
-    'BABA': 'Alibaba (NYSE)',
-    'TM': 'Toyota Motor (NYSE)',
-    
+    '7203.T': 'Toyota Motor (Tokyo)', '6758.T': 'Sony (Tokyo)', 'BABA': 'Alibaba (NYSE)', 'TM': 'Toyota Motor (NYSE)',
     # Crypto
-    'BTC-USD': 'Bitcoin (Crypto)',
-    'ETH-USD': 'Ethereum (Crypto)',
-    'SOL-USD': 'Solana (Crypto)',
-    'XRP-USD': 'Ripple (Crypto)',
+    'BTC-USD': 'Bitcoin (Crypto)', 'ETH-USD': 'Ethereum (Crypto)', 'SOL-USD': 'Solana (Crypto)', 'XRP-USD': 'Ripple (Crypto)',
 }
-# --- FIN DE LA NOUVELLE BASE DE DONNÉES ---
 
 
 # --- FONCTION CACHÉE POUR LA SIMULATION ---
@@ -274,19 +225,40 @@ lang_choice = st.sidebar.selectbox(
 lang = 'en' if lang_choice == 'English' else 'fr'
 T = TRANSLATIONS[lang] 
 
-# --- DÉBUT DU FORMULAIRE ---
-with st.sidebar.form(key='params_form'):
-    if 'selected_tickers' not in st.session_state:
-        st.session_state.selected_tickers = [] 
+if 'selected_tickers' not in st.session_state:
+    st.session_state.selected_tickers = [] 
 
+# --- NOUVELLE LOGIQUE : L'AJOUT MANUEL EST SORTI DU FORMULAIRE ---
+def add_manual_tickers():
+    # Fonction appelée quand on appuie sur "Entrée"
+    manual_str = st.session_state.manual_ticker_input
+    if manual_str:
+        new_tickers = [t.strip().upper() for t in manual_str.split(',') if t.strip()]
+        for t in new_tickers:
+            if t not in st.session_state.selected_tickers:
+                st.session_state.selected_tickers.append(t)
+        # On vide le champ de texte après l'ajout
+        st.session_state.manual_ticker_input = ""
+
+st.sidebar.text_input(
+    T['ticker_manual_label'], 
+    key='manual_ticker_input', 
+    on_change=add_manual_tickers
+)
+# --- FIN DE LA NOUVELLE LOGIQUE ---
+
+
+# --- DÉBUT DU FORMULAIRE ---
+# Tout le reste est dans le formulaire
+with st.sidebar.form(key='params_form'):
+    
+    # Le sélecteur "intelligent"
     selected_tickers_multi = st.multiselect(
         T['ticker_select_label'],
         options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.selected_tickers))),
         default=st.session_state.selected_tickers,
         format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
     )
-
-    custom_tickers_string = st.text_input(T['ticker_manual_label'])
     
     st.sidebar.divider()
     st.sidebar.subheader(T['sim_params_header'])
@@ -307,6 +279,9 @@ with st.sidebar.form(key='params_form'):
     current_inputs = []
     input_mode = None
     monetary_values = []
+    
+    # On doit utiliser la liste du multiselect pour générer les champs
+    tickers_in_form = sorted(list(set(selected_tickers_multi))) 
 
     if use_current_portfolio:
         input_mode = st.radio(
@@ -314,9 +289,6 @@ with st.sidebar.form(key='params_form'):
             (T['mode_amount'], T['mode_shares'])
         )
         
-        custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
-        tickers_in_form = sorted(list(set(selected_tickers_multi + custom_tickers)))
-
         if input_mode == T['mode_amount']:
             st.write(T['mode_amount'] + ":")
             for ticker in tickers_in_form:
@@ -329,6 +301,7 @@ with st.sidebar.form(key='params_form'):
                 shares = st.number_input(T['shares_label'].format(ticker=ticker), min_value=0.0, value=10.0, step=0.1, key=f"shares_{ticker}")
                 current_inputs.append(shares)
 
+    # Le bouton de soumission du formulaire
     run_button = st.form_submit_button(T['run_button'])
 # --- FIN DU FORMULAIRE ---
 
@@ -338,7 +311,7 @@ with st.sidebar.form(key='params_form'):
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     st.image(
-        "markowitz.jpg", 
+        "markowitz.jpg", # Charge le fichier local
         width=150,
         caption="Harry Markowitz"
     )
@@ -352,9 +325,9 @@ if not run_button:
     st.info(T['run_info'])
     st.stop()
 
-custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
-tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
-st.session_state.selected_tickers = tickers 
+# Le code ne s'exécute que si le bouton est cliqué
+tickers = tickers_in_form # On utilise les tickers qui étaient dans le formulaire au moment du clic
+st.session_state.selected_tickers = tickers # On sauvegarde pour la prochaine fois
 
 if not tickers:
     st.error(T['ticker_error'])
@@ -553,7 +526,7 @@ if use_current_portfolio and current_return is not None:
     col1, col2, col3, col4 = st.columns(4)
     col1.write(f"**{T['col_action']}**")
     col2.write(f"**{T['col_current_pos']}**")
-    col3.write(f"**{TÃ['col_optimal_pos']}**")
+    col3.write(f"**{T['col_optimal_pos']}**")
     col4.write(f"**{T['col_action_req']}**")
     st.divider()
 
