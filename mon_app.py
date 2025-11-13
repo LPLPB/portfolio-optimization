@@ -22,7 +22,7 @@ TRANSLATIONS = {
         'sidebar_header': "Optimization Parameters",
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
-        'ticker_manual_label': "Or add tickers manually (Press Enter to add)",
+        'ticker_manual_label': "Or add tickers manually (comma separated)",
         'ticker_error': "Please select at least one ticker.",
         'sim_params_header': "2. Simulation Parameters",
         'period_label': "Period (e.g., '504d', '2y', '5y')",
@@ -95,7 +95,7 @@ TRANSLATIONS = {
         'sidebar_header': "Paramètres de l'Optimisation",
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
-        'ticker_manual_label': "Ou ajoutez des tickers manuellement (Appuyez sur Entrée pour ajouter)",
+        'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par virgule)",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
         'sim_params_header': "2. Paramètres de simulation",
         'period_label': "Période (ex: '504d', '2y', '5y')",
@@ -228,38 +228,19 @@ T = TRANSLATIONS[lang]
 if 'selected_tickers' not in st.session_state:
     st.session_state.selected_tickers = [] 
 
-# --- NOUVELLE LOGIQUE : INTERACTIVE (HORS FORMULAIRE) ---
-def add_manual_tickers():
-    manual_str = st.session_state.manual_ticker_input
-    if manual_str:
-        new_tickers = [t.strip().upper() for t in manual_str.split(',') if t.strip()]
-        for t in new_tickers:
-            if t not in st.session_state.selected_tickers:
-                st.session_state.selected_tickers.append(t)
-        st.session_state.manual_ticker_input = "" # Vide le champ
-
-st.sidebar.text_input(
-    T['ticker_manual_label'], 
-    key='manual_ticker_input', 
-    on_change=add_manual_tickers
-)
-
-selected_tickers_multi = st.sidebar.multiselect(
-    T['ticker_select_label'],
-    options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.selected_tickers))),
-    default=st.session_state.selected_tickers,
-    format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
-)
-st.session_state.selected_tickers = selected_tickers_multi
-
-# LA CASE À COCHER EST MAINTENANT INTERACTIVE (HORS FORMULAIRE)
-use_current_portfolio = st.sidebar.checkbox(T['compare_label'], key='compare_checkbox')
-# --- FIN DE LA PARTIE INTERACTIVE ---
-
-
-# --- DÉBUT DU FORMULAIRE ---
+# --- NOUVELLE LOGIQUE : TOUT DANS LE FORMULAIRE ---
 with st.sidebar.form(key='params_form'):
     
+    selected_tickers_multi = st.multiselect(
+        T['ticker_select_label'],
+        options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.selected_tickers))),
+        default=st.session_state.selected_tickers,
+        format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
+    )
+
+    custom_tickers_string = st.text_input(T['ticker_manual_label'])
+    
+    st.sidebar.divider()
     st.sidebar.subheader(T['sim_params_header'])
 
     period = st.text_input(
@@ -272,19 +253,23 @@ with st.sidebar.form(key='params_form'):
         1000, 20000, 10000, 1000
     )
 
+    st.sidebar.header(T['current_header'])
+    use_current_portfolio = st.checkbox(T['compare_label'])
+
     current_inputs = []
     input_mode = None
     monetary_values = []
     
-    # On utilise la session state pour les tickers (maintenant unifiée)
-    tickers_in_form = sorted(list(set(st.session_state.selected_tickers))) 
+    # On combine les tickers ici, à l'intérieur du formulaire
+    custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
+    tickers_in_form = sorted(list(set(selected_tickers_multi + custom_tickers)))
+    st.session_state.selected_tickers = tickers_in_form # Sauvegarde pour le prochain rechargement
 
-    # LES CHAMPS N'APPARAISSENT QUE SI LA CASE EST COCHÉE
     if use_current_portfolio:
-        st.sidebar.header(T['current_header'])
         input_mode = st.radio(
             T['input_mode_label'],
-            (T['mode_amount'], T['mode_shares'])
+            (T['mode_amount'], T['mode_shares']),
+            key='input_mode_radio' # Clé unique pour le state
         )
         
         if input_mode == T['mode_amount']:
