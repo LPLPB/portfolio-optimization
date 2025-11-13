@@ -498,8 +498,8 @@ fig_scatter.update_layout(
     template='plotly_dark',
     legend=dict(
         title=T['legend_title'],
-        yanchor="top", y=0.98,
-        xanchor="left", x=0.01,
+        yanchor="bottom", y=1.02,  # Ajusté pour être au-dessus de la courbe
+        xanchor="right", x=1,     # Ajusté pour être en haut à droite
         bgcolor="rgba(0,0,0,0.5)",
         bordercolor="white", borderwidth=1
     )
@@ -556,36 +556,4 @@ with st.expander(T['corr_header']):
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
 if use_current_portfolio and current_return is not None:
-    st.header(T['conclusion_header'])
-    st.write(T['conclusion_subheader'].format(value=total_portfolio_value))
-
-    optimal_values = opt_weights * total_portfolio_value
-    
-    st.subheader(T['action_header'])
-    
-    col1, col2, col3, col4 = st.columns(4)
-    col1.write(f"**{T['col_action']}**")
-    col2.write(f"**{T['col_current_pos']}**")
-    col3.write(f"**{T['col_optimal_pos']}**")
-    col4.write(f"**{T['col_action_req']}**")
-    st.divider()
-
-    for i, ticker in enumerate(tickers):
-        current_val = monetary_values[i]
-        optimal_val = optimal_values[i]
-        diff = optimal_val - current_val
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.write(f"**{ticker}**")
-        with col2:
-            st.write(f"{current_val:,.2f}")
-        with col3:
-            st.write(f"{optimal_val:,.2f}")
-        with col4:
-            if diff > 0.01:
-                st.success(T['action_buy'].format(diff=diff))
-            elif diff < -0.01:
-                st.error(T['action_sell'].format(abs_diff=abs(diff)))
-            else:
-                st.info(T['action_hold'])
+    st.header(T['conclusion
