@@ -501,17 +501,14 @@ fig_scatter.update_layout(
     yaxis_title=T['frontier_yaxis'],
     template='plotly_dark',
     
-    # Ajout d'une marge en haut pour que la légende (à y=1.02)
-    # ne soit pas superposée par les points de données.
-    margin=dict(t=100), # 100 pixels en haut
+    # Suppression de la marge qui ne fonctionnait pas
     
     legend=dict(
         title=T['legend_title'],
-        yanchor="bottom", y=1.02,  # Position au-dessus (correct)
-        xanchor="right", x=1,      # Position à droite (correct)
-        bgcolor="black",          # Fond OPAQUE (correct)
+        yanchor="top", y=0.98,      # Position INSIDE (en haut)
+        xanchor="left", x=0.02,     # Position INSIDE (à gauche)
+        bgcolor="rgba(0,0,0,0.7)",  # Fond semi-transparent
         bordercolor="white", borderwidth=1
-        # Suppression de 'layer="above"' qui causait le ValueError
     )
 )
 # --- FIN DE LA CORRECTION ---
