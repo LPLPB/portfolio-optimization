@@ -13,7 +13,6 @@ st.set_page_config(
 )
 
 # --- DONNÉES PRÉDÉFINIES (Pour la recherche) ---
-# C'est la base de données pour la recherche "intelligente"
 PREDEFINED_TICKERS = {
     'AAPL': 'Apple (NASDAQ)',
     'MSFT': 'Microsoft (NASDAQ)',
@@ -41,10 +40,10 @@ PREDEFINED_TICKERS = {
     'ETH-USD': 'Ethereum (Crypto)',
 }
 
-# Fonction pour ajouter un ticker à la session
 def add_ticker(ticker):
     if ticker not in st.session_state.selected_tickers:
         st.session_state.selected_tickers.append(ticker)
+    st.rerun()
 
 # --- FONCTION CACHÉE POUR LA SIMULATION ---
 @st.cache_data
@@ -67,20 +66,26 @@ def run_simulation(log_ret, num_ports, num_assets):
 # --- 2. BARRE LATÉRALE (Inputs) ---
 st.sidebar.header("Paramètres de l'Optimisation")
 
-# Initialiser la session pour les tickers
 if 'selected_tickers' not in st.session_state:
     st.session_state.selected_tickers = ['DCAM.PA', 'TSLA']
 
-# Le nouveau sélecteur "intelligent"
-tickers = st.sidebar.multiselect(
+# Le sélecteur "intelligent"
+selected_tickers_multi = st.sidebar.multiselect(
     "1. Sélectionnez ou recherchez des actions",
     options=list(PREDEFINED_TICKERS.keys()),
     default=st.session_state.selected_tickers,
     format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
 )
-st.session_state.selected_tickers = tickers
 
-# Les "Branches" (Catégories rapides)
+# --- NOUVEAU : Ajout manuel de Tickers ---
+custom_tickers_string = st.sidebar.text_input("Ou ajoutez des tickers manuellement (ex: TCKR1, TCKR2)")
+custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
+
+# On combine les deux listes et on enlève les doublons
+tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
+st.session_state.selected_tickers = tickers # On sauvegarde la liste combinée
+# --- FIN NOUVEAU ---
+
 st.sidebar.subheader("Ou ajoutez via les catégories")
 with st.sidebar.expander("ETFs Populaires"):
     if st.button("S&P 500 (SPY)", use_container_width=True): add_ticker('SPY')
@@ -141,11 +146,11 @@ run_button = st.sidebar.button("Lancer l'Optimisation")
 
 # --- 3. CORPS PRINCIPAL DE L'APPLICATION ---
 
-# --- NOUVEAU : Photo de Markowitz ---
+# --- NOUVEAU : Correction Photo Markowitz ---
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     st.image(
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Harry_Markowitz_%281989%29.jpg/800px-Harry_Markowitz_%281989%29.jpg",
+        "markowitz.jpg", # Charge le fichier local que tu as uploadé sur GitHub
         width=150,
         caption="Harry Markowitz"
     )
