@@ -5,7 +5,48 @@ import yfinance as yf
 import plotly.express as px
 import plotly.graph_objects as go
 
-# La fonction mise en cache pour stabiliser l'app
+# --- CONFIGURATION DE LA PAGE ---
+st.set_page_config(
+    page_title="Optimiseur de Portefeuille",
+    page_icon="📊",
+    layout="wide"
+)
+
+# --- DONNÉES PRÉDÉFINIES (Pour la recherche) ---
+# C'est la base de données pour la recherche "intelligente"
+PREDEFINED_TICKERS = {
+    'AAPL': 'Apple (NASDAQ)',
+    'MSFT': 'Microsoft (NASDAQ)',
+    'GOOG': 'Alphabet (Google) (NASDAQ)',
+    'AMZN': 'Amazon (NASDAQ)',
+    'TSLA': 'Tesla (NASDAQ)',
+    'NVDA': 'NVIDIA (NASDAQ)',
+    'META': 'Meta Platforms (NASDAQ)',
+    'JPM': 'JPMorgan Chase (NYSE)',
+    'JNJ': 'Johnson & Johnson (NYSE)',
+    'V': 'Visa (NYSE)',
+    'SPY': 'ETF - S&P 500 (SPDR)',
+    'QQQ': 'ETF - Nasdaq 100 (Invesco)',
+    'URTH': 'ETF - MSCI World (iShares)',
+    'EEM': 'ETF - MSCI Emerging Markets (iShares)',
+    'MC.PA': 'LVMH (Euronext Paris)',
+    'OR.PA': 'L\'Oréal (Euronext Paris)',
+    'RMS.PA': 'Hermès (Euronext Paris)',
+    'DCAM.PA': 'Amundi (Euronext Paris)',
+    'TTE.PA': 'TotalEnergies (Euronext Paris)',
+    'SAN.PA': 'Sanofi (Euronext Paris)',
+    'AIR.PA': 'Airbus (Euronext Paris)',
+    'BNP.PA': 'BNP Paribas (Euronext Paris)',
+    'BTC-USD': 'Bitcoin (Crypto)',
+    'ETH-USD': 'Ethereum (Crypto)',
+}
+
+# Fonction pour ajouter un ticker à la session
+def add_ticker(ticker):
+    if ticker not in st.session_state.selected_tickers:
+        st.session_state.selected_tickers.append(ticker)
+
+# --- FONCTION CACHÉE POUR LA SIMULATION ---
 @st.cache_data
 def run_simulation(log_ret, num_ports, num_assets):
     all_weights = np.zeros((num_ports, num_assets))
@@ -23,64 +64,42 @@ def run_simulation(log_ret, num_ports, num_assets):
     
     return all_weights, all_returns, all_volatilities, all_sharpe_ratios
 
-
-st.set_page_config(
-    page_title="Optimiseur de Portefeuille",
-    page_icon="📊",
-    layout="wide"
-)
-
 # --- 2. BARRE LATÉRALE (Inputs) ---
 st.sidebar.header("Paramètres de l'Optimisation")
-
-# --- NOUVEAU : Sélecteur de Tickers Amélioré ---
-# Pré-définir une liste d'options populaires pour le filtre
-PREDEFINED_TICKERS = [
-    'AAPL', 'MSFT', 'GOOG', 'TSLA', 'AMZN', 'NVDA', # US Tech
-    'SPY', 'QQQ', 'URTH', 'EEM', # ETFs (S&P 500, Nasdaq, MSCI World, Emergents)
-    'DCAM.PA', 'MC.PA', 'RMS.PA', 'OR.PA', # FR (CAC40)
-    'BTC-USD', 'ETH-USD' # Crypto
-]
 
 # Initialiser la session pour les tickers
 if 'selected_tickers' not in st.session_state:
     st.session_state.selected_tickers = ['DCAM.PA', 'TSLA']
 
-# Le sélecteur multi-choix qui remplace st.text_input
-# Il gère le filtrage et l'ajout de nouvelles valeurs
+# Le nouveau sélecteur "intelligent"
 tickers = st.sidebar.multiselect(
-    "Entrez les Tickers (tapez pour filtrer ou ajouter)",
-    options=sorted(list(set(PREDEFINED_TICKERS + st.session_state.selected_tickers))),
-    default=st.session_state.selected_tickers
+    "1. Sélectionnez ou recherchez des actions",
+    options=list(PREDEFINED_TICKERS.keys()),
+    default=st.session_state.selected_tickers,
+    format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
 )
-# Mettre à jour l'état de la session
 st.session_state.selected_tickers = tickers
 
+# Les "Branches" (Catégories rapides)
+st.sidebar.subheader("Ou ajoutez via les catégories")
+with st.sidebar.expander("ETFs Populaires"):
+    if st.button("S&P 500 (SPY)", use_container_width=True): add_ticker('SPY')
+    if st.button("Nasdaq 100 (QQQ)", use_container_width=True): add_ticker('QQQ')
+    if st.button("MSCI World (URTH)", use_container_width=True): add_ticker('URTH')
 
-# Section "Actions Rapides"
-st.sidebar.subheader("Actions Rapides (Ajout)")
-QUICK_ADD = {
-    'S&P 500 (ETF)': 'SPY',
-    'Nasdaq (ETF)': 'QQQ',
-    'MSCI World (ETF)': 'URTH',
-    'Apple': 'AAPL',
-    'Microsoft': 'MSFT',
-    'LVMH': 'MC.PA'
-}
+with st.sidebar.expander("Actions US Tech (NASDAQ)"):
+    if st.button("Apple (AAPL)", use_container_width=True): add_ticker('AAPL')
+    if st.button("Microsoft (MSFT)", use_container_width=True): add_ticker('MSFT')
+    if st.button("Google (GOOG)", use_container_width=True): add_ticker('GOOG')
+    if st.button("Tesla (TSLA)", use_container_width=True): add_ticker('TSLA')
 
-# Crée 2 colonnes pour les boutons
-col1, col2 = st.sidebar.columns(2)
-for i, (label, ticker) in enumerate(QUICK_ADD.items()):
-    target_col = col1 if i % 2 == 0 else col2
-    if target_col.button(label, key=ticker):
-        if ticker not in st.session_state.selected_tickers:
-            st.session_state.selected_tickers.append(ticker)
-        # Force l'app à se re-exécuter pour voir le ticker ajouté
-        st.rerun()
+with st.sidebar.expander("Actions Françaises (CAC40)"):
+    if st.button("LVMH (MC.PA)", use_container_width=True): add_ticker('MC.PA')
+    if st.button("L'Oréal (OR.PA)", use_container_width=True): add_ticker('OR.PA')
+    if st.button("Hermès (RMS.PA)", use_container_width=True): add_ticker('RMS.PA')
 
-st.sidebar.divider() # Séparateur visuel
-
-# --- Fin du Nouveau Sélecteur ---
+st.sidebar.divider()
+st.sidebar.subheader("2. Paramètres de simulation")
 
 period = st.sidebar.text_input(
     "Période (ex: '504d', '2y', '5y')",
@@ -119,14 +138,28 @@ if use_current_portfolio and tickers:
 
 run_button = st.sidebar.button("Lancer l'Optimisation")
 
-st.title("📊 Optimiseur de Portefeuille (Modèle Markowitz)")
-st.markdown("Créé par **Léo-Paul Laisne** | [Profil LinkedIn](https://www.linkedin.com/in/leopaullaisne)")
+
+# --- 3. CORPS PRINCIPAL DE L'APPLICATION ---
+
+# --- NOUVEAU : Photo de Markowitz ---
+col_img, col_titre = st.columns([1, 4])
+with col_img:
+    st.image(
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Harry_Markowitz_%281989%29.jpg/800px-Harry_Markowitz_%281989%29.jpg",
+        width=150,
+        caption="Harry Markowitz"
+    )
+with col_titre:
+    st.title("📊 Optimiseur de Portefeuille")
+    st.markdown("Créé par **Léo-Paul Laisne** | [Profil LinkedIn](https://www.linkedin.com/in/leopaullaisne)")
+    st.markdown("*Basé sur la Théorie Moderne du Portefeuille (Markowitz)*")
+# --- FIN NOUVEAU ---
+
 
 if not run_button:
-    st.info("Veuillez entrer les tickers et cliquer sur 'Lancer l'Optimisation' dans la barre latérale.")
+    st.info("Veuillez sélectionner vos actions et cliquer sur 'Lancer l'Optimisation' dans la barre latérale.")
     st.stop()
 
-# CORRECTION : S'assurer que 'tickers' (la liste) n'est pas vide
 if not tickers:
     st.error("Veuillez sélectionner au moins un ticker.")
     st.stop()
@@ -267,8 +300,8 @@ fig_scatter.add_shape(type='line', x0=0, y0=0,
                       line=dict(color="lime", width=2, dash="dot"))
 
 fig_scatter.add_trace(go.Scatter(
-    x=[max_s_vol], 
-    y=[max_s_ret],
+    x=[max_sr_vol], 
+    y=[max_sr_ret],
     mode='markers',
     marker=dict(color='white', size=10, line=dict(color='black', width=2)),
     name='Portefeuille Optimal'
