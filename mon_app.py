@@ -162,18 +162,90 @@ TRANSLATIONS = {
     }
 }
 
-# --- DONNÉES PRÉDÉFINIES (Pour la recherche) ---
+# --- NOUVEAU : BASE DE DONNÉES DE TICKERS ÉTENDUE ---
 PREDEFINED_TICKERS = {
-    'AAPL': 'Apple (NASDAQ)', 'MSFT': 'Microsoft (NASDAQ)', 'GOOG': 'Alphabet (Google) (NASDAQ)',
-    'AMZN': 'Amazon (NASDAQ)', 'TSLA': 'Tesla (NASDAQ)', 'NVDA': 'NVIDIA (NASDAQ)',
-    'META': 'Meta Platforms (NASDAQ)', 'JPM': 'JPMorgan Chase (NYSE)', 'JNJ': 'Johnson & Johnson (NYSE)',
-    'V': 'Visa (NYSE)', 'SPY': 'ETF - S&P 500 (SPDR)', 'QQQ': 'ETF - Nasdaq 100 (Invesco)',
-    'URTH': 'ETF - MSCI World (iShares)', 'EEM': 'ETF - MSCI Emerging Markets (iShares)',
-    'MC.PA': 'LVMH (Euronext Paris)', 'OR.PA': 'L\'Oréal (Euronext Paris)', 'RMS.PA': 'Hermès (Euronext Paris)',
-    'DCAM.PA': 'Amundi (Euronext Paris)', 'TTE.PA': 'TotalEnergies (Euronext Paris)', 'SAN.PA': 'Sanofi (Euronext Paris)',
-    'AIR.PA': 'Airbus (Euronext Paris)', 'BNP.PA': 'BNP Paribas (Euronext Paris)',
-    'BTC-USD': 'Bitcoin (Crypto)', 'ETH-USD': 'Ethereum (Crypto)',
+    # ETFs Principaux
+    'SPY': 'ETF - S&P 500 (SPDR)',
+    'QQQ': 'ETF - Nasdaq 100 (Invesco)',
+    'DIA': 'ETF - Dow Jones (SPDR)',
+    'URTH': 'ETF - MSCI World (iShares)',
+    'EEM': 'ETF - MSCI Emerging Markets (iShares)',
+    'EWJ': 'ETF - MSCI Japan (iShares)',
+    'EWG': 'ETF - MSCI Germany (iShares)',
+    'EWU': 'ETF - MSCI UK (iShares)',
+    'GLD': 'ETF - Or (SPDR Gold Shares)',
+    'SLV': 'ETF - Argent (iShares Silver Trust)',
+    
+    # US Tech
+    'AAPL': 'Apple (NASDAQ)',
+    'MSFT': 'Microsoft (NASDAQ)',
+    'GOOG': 'Alphabet (Google) (NASDAQ)',
+    'AMZN': 'Amazon (NASDAQ)',
+    'TSLA': 'Tesla (NASDAQ)',
+    'NVDA': 'NVIDIA (NASDAQ)',
+    'META': 'Meta Platforms (NASDAQ)',
+    'ORCL': 'Oracle (NYSE)',
+    'ADBE': 'Adobe (NASDAQ)',
+    'CRM': 'Salesforce (NYSE)',
+    'INTC': 'Intel (NASDAQ)',
+    'AMD': 'AMD (NASDAQ)',
+    'CSCO': 'Cisco (NASDAQ)',
+    
+    # US Finance
+    'JPM': 'JPMorgan Chase (NYSE)',
+    'BAC': 'Bank of America (NYSE)',
+    'WFC': 'Wells Fargo (NYSE)',
+    'GS': 'Goldman Sachs (NYSE)',
+    'MS': 'Morgan Stanley (NYSE)',
+    'V': 'Visa (NYSE)',
+    'MA': 'Mastercard (NYSE)',
+    'AXP': 'American Express (NYSE)',
+    
+    # US Santé
+    'JNJ': 'Johnson & Johnson (NYSE)',
+    'UNH': 'UnitedHealth Group (NYSE)',
+    'PFE': 'Pfizer (NYSE)',
+    'LLY': 'Eli Lilly (NYSE)',
+    'MRK': 'Merck & Co. (NYSE)',
+    
+    # US Consommation
+    'WMT': 'Walmart (NYSE)',
+    'PG': 'Procter & Gamble (NYSE)',
+    'KO': 'Coca-Cola (NYSE)',
+    'PEP': 'PepsiCo (NASDAQ)',
+    'NKE': 'Nike (NYSE)',
+    'MCD': 'McDonald\'s (NYSE)',
+    'DIS': 'Disney (NYSE)',
+    'COST': 'Costco (NASDAQ)',
+    
+    # Euronext Paris
+    'MC.PA': 'LVMH (Euronext Paris)',
+    'OR.PA': 'L\'Oréal (Euronext Paris)',
+    'RMS.PA': 'Hermès (Euronext Paris)',
+    'DCAM.PA': 'Amundi (Euronext Paris)',
+    'TTE.PA': 'TotalEnergies (Euronext Paris)',
+    'SAN.PA': 'Sanofi (Euronext Paris)',
+    'AIR.PA': 'Airbus (Euronext Paris)',
+    'BNP.PA': 'BNP Paribas (Euronext Paris)',
+    'SAF.PA': 'Safran (Euronext Paris)',
+    'KER.PA': 'Kering (Euronext Paris)',
+    'AI.PA': 'Air Liquide (Euronext Paris)',
+    'EL.PA': 'EssilorLuxottica (Euronext Paris)',
+    
+    # Asie (Exemples)
+    '7203.T': 'Toyota Motor (Tokyo)',
+    '6758.T': 'Sony (Tokyo)',
+    'BABA': 'Alibaba (NYSE)',
+    'TM': 'Toyota Motor (NYSE)',
+    
+    # Crypto
+    'BTC-USD': 'Bitcoin (Crypto)',
+    'ETH-USD': 'Ethereum (Crypto)',
+    'SOL-USD': 'Solana (Crypto)',
+    'XRP-USD': 'Ripple (Crypto)',
 }
+# --- FIN DE LA NOUVELLE BASE DE DONNÉES ---
+
 
 # --- FONCTION CACHÉE POUR LA SIMULATION ---
 @st.cache_data
@@ -194,22 +266,19 @@ def run_simulation(log_ret, num_ports, num_assets):
 # --- 3. BARRE LATÉRALE (Inputs) ---
 st.sidebar.header(TRANSLATIONS['en']['sidebar_header'])
 
-# Sélecteur de langue en haut
 lang_choice = st.sidebar.selectbox(
     TRANSLATIONS['en']['lang_select'], 
     ['English', 'Français'], 
-    index=0 # Défaut sur Anglais
+    index=0 
 )
 lang = 'en' if lang_choice == 'English' else 'fr'
-T = TRANSLATIONS[lang] # T est notre dictionnaire de traduction
+T = TRANSLATIONS[lang] 
 
-# --- NOUVEAU : DÉBUT DU FORMULAIRE ---
-# Le formulaire empêche l'application de recharger à chaque clic
+# --- DÉBUT DU FORMULAIRE ---
 with st.sidebar.form(key='params_form'):
     if 'selected_tickers' not in st.session_state:
-        st.session_state.selected_tickers = [] # Par défaut, la liste est vide
+        st.session_state.selected_tickers = [] 
 
-    # Le sélecteur "intelligent"
     selected_tickers_multi = st.multiselect(
         T['ticker_select_label'],
         options=sorted(list(set(list(PREDEFINED_TICKERS.keys()) + st.session_state.selected_tickers))),
@@ -217,7 +286,6 @@ with st.sidebar.form(key='params_form'):
         format_func=lambda ticker: f"{ticker} - {PREDEFINED_TICKERS.get(ticker, 'Ticker personnalisé')}"
     )
 
-    # Ajout manuel de Tickers
     custom_tickers_string = st.text_input(T['ticker_manual_label'])
     
     st.sidebar.divider()
@@ -246,8 +314,6 @@ with st.sidebar.form(key='params_form'):
             (T['mode_amount'], T['mode_shares'])
         )
         
-        # Logique pour les tickers
-        # On doit définir les tickers ici pour que les champs s'affichent
         custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
         tickers_in_form = sorted(list(set(selected_tickers_multi + custom_tickers)))
 
@@ -263,7 +329,6 @@ with st.sidebar.form(key='params_form'):
                 shares = st.number_input(T['shares_label'].format(ticker=ticker), min_value=0.0, value=10.0, step=0.1, key=f"shares_{ticker}")
                 current_inputs.append(shares)
 
-    # Le bouton de soumission du formulaire
     run_button = st.form_submit_button(T['run_button'])
 # --- FIN DU FORMULAIRE ---
 
@@ -273,7 +338,7 @@ with st.sidebar.form(key='params_form'):
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     st.image(
-        "markowitz.jpg", # Charge le fichier local
+        "markowitz.jpg", 
         width=150,
         caption="Harry Markowitz"
     )
@@ -287,11 +352,9 @@ if not run_button:
     st.info(T['run_info'])
     st.stop()
 
-# Le code ne s'exécute que si le bouton est cliqué
-# On récupère les tickers du formulaire
 custom_tickers = [t.strip().upper() for t in custom_tickers_string.split(',') if t.strip()]
 tickers = sorted(list(set(selected_tickers_multi + custom_tickers)))
-st.session_state.selected_tickers = tickers # On sauvegarde pour la prochaine fois
+st.session_state.selected_tickers = tickers 
 
 if not tickers:
     st.error(T['ticker_error'])
@@ -300,7 +363,7 @@ if not tickers:
 try:
     with st.spinner(T['loading_data'].format(tickers=', '.join(tickers))):
         stocks = yf.download(tickers, period=period, auto_adjust=True)['Close']
-        if len(tickers) == 1:
+        if isinstance(stocks, pd.Series):
             stocks = stocks.to_frame(name=tickers[0])
     
     log_ret = np.log(stocks / stocks.shift(1)).dropna()
@@ -325,7 +388,7 @@ if use_current_portfolio and current_inputs:
     
     elif input_mode == T['mode_shares']:
         for i, ticker in enumerate(tickers):
-            price = current_prices if num_assets == 1 else current_prices[ticker]
+            price = current_prices[ticker] if num_assets > 1 else current_prices[tickers[0]]
             shares = current_inputs[i]
             monetary_values.append(shares * price)
     
@@ -490,7 +553,7 @@ if use_current_portfolio and current_return is not None:
     col1, col2, col3, col4 = st.columns(4)
     col1.write(f"**{T['col_action']}**")
     col2.write(f"**{T['col_current_pos']}**")
-    col3.write(f"**{T['col_optimal_pos']}**")
+    col3.write(f"**{TÃ['col_optimal_pos']}**")
     col4.write(f"**{T['col_action_req']}**")
     st.divider()
 
