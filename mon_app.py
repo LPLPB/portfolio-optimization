@@ -225,7 +225,6 @@ def run_simulation(log_ret, num_ports, num_assets):
         all_sharpes[i] = all_returns[i] / all_vols[i]
         
     return all_weights, all_returns, all_vols, all_sharpes
-# --- FIN DE LA CORRECTION ---
 
 # ---------------------------
 # BARRE LATÉRALE (Structure "Wizard" 2 Étapes)
@@ -334,6 +333,9 @@ elif st.session_state.step == 2:
             st.session_state.current_inputs = current_inputs
             st.session_state.input_mode = input_mode
             st.session_state.use_current_portfolio = use_current_portfolio
+            # On sauvegarde aussi period et num_ports pour y accéder hors du formulaire
+            st.session_state.period = period
+            st.session_state.num_ports = num_ports
 
 
 # ---------------------------
@@ -342,11 +344,14 @@ elif st.session_state.step == 2:
 
 col_img, col_titre = st.columns([1, 4])
 with col_img:
-    st.image(
-        "markowitz.jpg", # Charge le fichier local
-        width=150,
-        caption="Harry Markowitz"
-    )
+    try:
+        st.image(
+            "markowitz.jpg", # Charge le fichier local
+            width=150,
+            caption="Harry Markowitz"
+        )
+    except:
+        st.warning("Image 'markowitz.jpg' non trouvée.")
 with col_titre:
     st.title(f"📊 {T['title']}")
     st.markdown(f"{T['created_by']} | [LinkedIn](https://www.linkedin.com/in/leopaullaisne)")
@@ -365,14 +370,9 @@ if not tickers:
     st.stop()
 
 # --- BLOC TRY/EXCEPT POUR LE TÉLÉCHARGEMENT ---
-# (Nous devons définir period ici, car il est utilisé dans ce bloc)
-# (Nous le récupérons depuis la session_state si 'Run' a été cliqué)
-if 'period' in locals():
-    # 'period' a été défini dans le formulaire de la sidebar
-    pass
-else:
-    # Au cas où l'état est perdu (peu probable mais sécurisé)
-    period = "504d" 
+# On récupère period et num_ports depuis le session_state
+period = st.session_state.get('period', '504d')
+num_ports = st.session_state.get('num_ports', 10000)
 
 try:
     with st.spinner(T['loading_data'].format(tickers=", ".join(tickers))):
@@ -427,12 +427,6 @@ if use_current_portfolio and current_inputs:
 
 
 # --- SIMULATION ---
-# (Nous avons besoin de num_ports ici, défini dans la sidebar)
-if 'num_ports' in locals():
-    pass
-else:
-    num_ports = 10000 # Valeur par défaut si non trouvée
-
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
     all_weights, all_returns, all_vols, all_sharpes = run_simulation(log_ret, num_ports, num_assets)
 
@@ -487,9 +481,9 @@ if T['col_amount_optimal'] in weights_df.columns:
 st.dataframe(weights_df.set_index(T['col_action']).style.format(format_dict))
 
 fig_weights = px.bar(weights_df, x=T['col_action'], y=T['col_weight'],
-                       title=T['alloc_chart_title'],
-                       text=weights_df[T['col_weight']].apply(lambda x: f'{x:.2f}%')
-                      )
+                     title=T['alloc_chart_title'],
+                     text=weights_df[T['col_weight']].apply(lambda x: f'{x:.2f}%')
+                    )
 fig_weights.update_layout(template='plotly_dark')
 st.plotly_chart(fig_weights, use_container_width=True)
 
@@ -502,10 +496,12 @@ df_plot = pd.DataFrame({
     'Sharpe': all_sharpes
 })
 fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
-               color_continuous_scale='RdYlGn',
-               labels={'Sharpe': 'Ratio de Sharpe'},
-               hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
-              )
+                       color_continuous_scale='RdYlGn',
+                       labels={'Sharpe': 'Ratio de Sharpe'},
+                       hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
+                     )
+
+# --- DEBUT DE LA CORRECTION ---
 fig_scatter.update_layout(
     title=T['frontier_chart_title'],
     xaxis_title=T['frontier_xaxis'],
@@ -513,12 +509,14 @@ fig_scatter.update_layout(
     template='plotly_dark',
     legend=dict(
         title=T['legend_title'],
-        yanchor="bottom", y=1.02,  # CORRIGÉ : Au-dessus du graphique
-        xanchor="right", x=1,     # CORRIGÉ : Côté droit
-        bgcolor="rgba(0,0,0,0.5)",
+        yanchor="bottom", y=1.02,  # Position au-dessus
+        xanchor="right", x=1,      # Position à droite
+        bgcolor="black",          # Fond OPAQUE
         bordercolor="white", borderwidth=1
     )
 )
+# --- FIN DE LA CORRECTION ---
+
 fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=opt_vol, y1=opt_return,
                       line=dict(color="lime", width=2, dash="dot"))
@@ -566,7 +564,7 @@ with st.expander(T['extra_charts_header']):
 with st.expander(T['corr_header']):
     df_corr = log_ret[tickers].corr()
     fig_heatmap = px.imshow(df_corr, text_auto=True, color_continuous_scale='Mint',
-                             labels=dict(y=T['corr_company'], x=T['corr_company']))
+                            labels=dict(y=T['corr_company'], x=T['corr_company']))
     fig_heatmap.update_layout(template='plotly_dark')
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
