@@ -329,8 +329,8 @@ elif st.session_state.step == 2:
         period = st.text_input(T['period_label'], "504d")
         num_ports = st.slider(T['ports_label'], 1000, 20000, 10000, 1000)
 
-        current_inputs = []
         tickers_in_form = st.session_state.locked_tickers
+        form_inputs = {}  # Dictionnaire pour stocker les inputs du formulaire
 
         if use_current_portfolio:
             st.sidebar.header(T['current_header'])
@@ -343,9 +343,9 @@ elif st.session_state.step == 2:
                     amount = st.number_input(
                         T['amount_label'].format(ticker=ticker),
                         min_value=0.0, value=prev_val, step=10.0,
-                        key=f"amount_{ticker}"
+                        key=f"amount_{ticker}_form"
                     )
-                    current_inputs.append(amount)
+                    form_inputs[ticker] = amount
             
             elif input_mode == T['mode_shares']:
                 st.write(T['mode_shares'] + ":")
@@ -355,14 +355,17 @@ elif st.session_state.step == 2:
                     shares = st.number_input(
                         T['shares_label'].format(ticker=ticker),
                         min_value=0.0, value=prev_val, step=1.0,
-                        key=f"shares_{ticker}"
+                        key=f"shares_{ticker}_form"
                     )
-                    current_inputs.append(shares)
+                    form_inputs[ticker] = shares
 
         run_button = st.form_submit_button(T['run_button'])
         if run_button:
+            # Convertir le dictionnaire en liste dans l'ordre des tickers
+            current_inputs = [form_inputs.get(ticker, 0.0) for ticker in tickers_in_form] if form_inputs else []
+            
             # Sauvegarde les valeurs pour la prochaine fois
-            if use_current_portfolio:
+            if use_current_portfolio and current_inputs:
                 if input_mode == T['mode_amount']:
                     for i, ticker in enumerate(tickers_in_form):
                         st.session_state[f"amount_{ticker}_val"] = current_inputs[i]
