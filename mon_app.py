@@ -664,4 +664,4 @@ if use_current_portfolio and current_return is not None:
         optimal_val = optimal_values[i]
         diff = optimal_val - current_val
         
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4 = st.columns(
