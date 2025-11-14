@@ -667,4 +667,4 @@ if use_current_portfolio and current_return is not None:
 
     # Lignes du tableau pour chaque ticker
     for i, ticker in enumerate(tickers):
-        current_val = monetary_values[i
+        current_val =
