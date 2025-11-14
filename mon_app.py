@@ -343,7 +343,7 @@ elif st.session_state.step == 2:
                     amount = st.number_input(
                         T['amount_label'].format(ticker=ticker),
                         min_value=0.0, value=prev_val, step=10.0,
-                        key=f"amount_{ticker}_form"
+                        key=f"amount_{ticker}"  # CORRECTION : Clé stable sans "_form"
                     )
                     form_inputs[ticker] = amount
             
@@ -355,7 +355,7 @@ elif st.session_state.step == 2:
                     shares = st.number_input(
                         T['shares_label'].format(ticker=ticker),
                         min_value=0.0, value=prev_val, step=1.0,
-                        key=f"shares_{ticker}_form"
+                        key=f"shares_{ticker}"  # CORRECTION : Clé stable sans "_form"
                     )
                     form_inputs[ticker] = shares
 
@@ -458,7 +458,7 @@ if use_current_portfolio and current_inputs:
 
     current_return = np.sum((log_ret.mean().values * current_weights_np) * 252)
     current_risk = np.sqrt(np.dot(current_weights_np.T, np.dot(log_ret.cov().values * 252, current_weights_np)))
-    current_sharpe = current_return / current_risk if current_risk != 0 else 0
+    current_sharpe = current_return / current_risk if current_risk > 1e-10 else 0  # CORRECTION : Évite division par zéro
 
 
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
