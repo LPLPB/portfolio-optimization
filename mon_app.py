@@ -274,8 +274,10 @@ if 'run_simulation' not in st.session_state:
     st.session_state.run_simulation = False
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = []
-if 'input_values' not in st.session_state:
-    st.session_state.input_values = {}
+if 'portfolio_values' not in st.session_state:
+    st.session_state.portfolio_values = {}
+if 'last_input_mode' not in st.session_state:
+    st.session_state.last_input_mode = None
 
 # --- ÉTAPE 1 : Sélection ---
 if st.session_state.step == 1:
@@ -327,6 +329,17 @@ elif st.session_state.step == 2:
             key='input_mode_radio'
         )
     
+    # CORRECTION : Gérer la transition entre modes
+    if use_current_portfolio and st.session_state.last_input_mode != input_mode:
+        # Si le mode a changé, réinitialiser les valeurs avec des valeurs par défaut appropriées
+        st.session_state.portfolio_values = {}
+        for ticker in st.session_state.locked_tickers:
+            if input_mode == T['mode_amount']:
+                st.session_state.portfolio_values[ticker] = 1000.0
+            else:
+                st.session_state.portfolio_values[ticker] = 10.0
+        st.session_state.last_input_mode = input_mode
+    
     # Paramètres de simulation
     st.sidebar.subheader(T['sim_params_header'])
     period = st.sidebar.text_input(T['period_label'], "504d")
@@ -339,8 +352,7 @@ elif st.session_state.step == 2:
         st.sidebar.header(T['current_header'])
         
         # Initialiser les valeurs si elles n'existent pas
-        if 'portfolio_values' not in st.session_state:
-            st.session_state.portfolio_values = {}
+        if not st.session_state.portfolio_values:
             for ticker in tickers_in_form:
                 if input_mode == T['mode_amount']:
                     st.session_state.portfolio_values[ticker] = 1000.0
@@ -594,4 +606,62 @@ if use_current_portfolio and current_return is not None:
 
 st.plotly_chart(fig_scatter, use_container_width=True)
 
-# ... (le reste du code reste identique) ...
+# --- SECTION HISTORIQUE DES PRIX ET RETOURS ---
+with st.expander(T['extra_charts_header']):
+    
+    st.subheader(T['prices_chart_title'])
+    data_to_plot = stocks[tickers] if isinstance(stocks, pd.DataFrame) else stocks
+    fig_prices = px.line(data_to_plot, title=T['prices_chart_title'])
+    fig_prices.update_layout(template='plotly_dark', yaxis_title=T['prices_chart_yaxis'], 
+                             xaxis_title=T['prices_chart_xaxis'], legend_title=T['prices_chart_legend'])
+    st.plotly_chart(fig_prices, use_container_width=True)
+
+    st.subheader(T['prices_table_start'])
+    st.dataframe(data_to_plot.head(5).style.format("{:.2f}"))
+
+    st.subheader(T['prices_table_end'])
+    st.dataframe(data_to_plot.tail(5).style.format("{:.2f}"))
+    st.divider()
+
+    st.subheader(T['returns_table_start'])
+    daily_pct_change = data_to_plot.pct_change().dropna() * 100
+    st.dataframe(daily_pct_change.head(5).style.format("{:.2f}%"))
+    
+    st.subheader(T['returns_table_end'])
+    st.dataframe(daily_pct_change.tail(5).style.format("{:.2f}%"))
+
+# --- MATRICE DE CORRÉLATION ---
+with st.expander(T['corr_header']):
+    if isinstance(log_ret, pd.DataFrame) and len(log_ret.columns) > 1:
+        df_corr = log_ret[tickers].corr()
+        fig_heatmap = px.imshow(df_corr, text_auto=True, color_continuous_scale='Mint',
+                                labels=dict(y=T['corr_company'], x=T['corr_company']))
+        fig_heatmap.update_layout(template='plotly_dark')
+        st.plotly_chart(fig_heatmap, use_container_width=True)
+    else:
+        st.info("La matrice de corrélation nécessite au moins 2 actifs.")
+
+# --- CONCLUSION ET PLAN D'ACTION ---
+if use_current_portfolio and current_return is not None:
+    st.header(T['conclusion_header'])
+    st.write(T['conclusion_subheader'].format(value=total_portfolio_value))
+
+    optimal_values = opt_weights * total_portfolio_value
+    
+    st.subheader(T['action_header'])
+    
+    col1, col2, col3, col4 = st.columns(4)
+    col1.write(f"**{T['col_action']}**")
+    col2.write(f"**{T['col_current_pos']}**")
+    col3.write(f"**{T['col_optimal_pos']}**")
+    col4.write(f"**{T['col_action_req']}**")
+    st.divider()
+
+    for i, ticker in enumerate(tickers):
+        current_val = monetary_values[i]
+        optimal_val = optimal_values[i]
+        diff = optimal_val - current_val
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.write
