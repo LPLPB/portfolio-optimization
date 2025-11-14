@@ -19,8 +19,8 @@ TRANSLATIONS = {
         'lang_select': "Language",
         'ticker_select_label': "1. Select or Search Assets",
         'ticker_manual_label': "Or add tickers manually (comma separated)",
-        'ticker_validate_button': "Add Manual Tickers", # Clé utilisée par la nouvelle Étape 1
-        'ticker_global_validate': "Validate Selection", # Clé utilisée par la nouvelle Étape 1
+        'ticker_validate_button': "Add Manual Tickers",
+        'ticker_global_validate': "Validate Selection",
         'tickers_locked': "Selected Assets:",
         'tickers_modify_button': "Modify Selection",
         'ticker_error': "Please select at least one ticker.",
@@ -96,8 +96,8 @@ TRANSLATIONS = {
         'lang_select': "Langue",
         'ticker_select_label': "1. Sélectionnez ou recherchez des actifs",
         'ticker_manual_label': "Ou ajoutez des tickers manuellement (séparés par des virgules)",
-        'ticker_validate_button': "Ajouter les tickers manuels", # Clé utilisée par la nouvelle Étape 1
-        'ticker_global_validate': "Valider la sélection", # Clé utilisée par la nouvelle Étape 1
+        'ticker_validate_button': "Ajouter les tickers manuels",
+        'ticker_global_validate': "Valider la sélection",
         'tickers_locked': "Actifs sélectionnés :",
         'tickers_modify_button': "Modifier la sélection",
         'ticker_error': "Veuillez sélectionner au moins un ticker.",
@@ -108,11 +108,11 @@ TRANSLATIONS = {
         'compare_label': "Comparer avec un portefeuille actuel",
         'input_mode_label': "Comment voulez-vous entrer vos actifs ?",
         'mode_amount': "Par montant (€/$)",
-        'mode_shares': "Par nombre d’actions",
+        'mode_shares': "Par nombre d'actions",
         'amount_label': "Montant pour {ticker}",
-        'shares_label': "Nombre d’actions pour {ticker}",
-        'run_button': "Lancer l’optimisation",
-        'run_info': "Veuillez sélectionner vos actifs dans la barre latérale et lancer l’optimisation.",
+        'shares_label': "Nombre d'actions pour {ticker}",
+        'run_button': "Lancer l'optimisation",
+        'run_info': "Veuillez sélectionner vos actifs dans la barre latérale et lancer l'optimisation.",
         'loading_data': "Téléchargement des données pour {tickers}...",
         'loading_error': "Erreur lors du chargement des données : {e}",
         'input_error': "Erreur : Le nombre d'entrées ({entries}) ne correspond pas au nombre de tickers ({tickers}).",
@@ -202,6 +202,16 @@ PREDEFINED_TICKERS = {
 }
 
 
+# --- FONCTION DE TÉLÉCHARGEMENT AVEC CACHE ---
+@st.cache_data(ttl=3600)  # Cache pendant 1 heure
+def download_stock_data(tickers, period):
+    """Télécharge les données avec cache pour éviter les appels répétés"""
+    stocks = yf.download(tickers, period=period, auto_adjust=True, progress=False)['Close']
+    if isinstance(stocks, pd.Series):
+        stocks = stocks.to_frame(name=tickers[0])
+    return stocks
+
+
 # --- FONCTION DE SIMULATION OPTIMISÉE ---
 @st.cache_data
 def run_simulation(log_ret, num_ports, num_assets):
@@ -225,6 +235,26 @@ def run_simulation(log_ret, num_ports, num_assets):
         all_sharpes[i] = all_returns[i] / all_vols[i]
         
     return all_weights, all_returns, all_vols, all_sharpes
+
+
+# --- FONCTION POUR OBTENIR LES PRIX ACTUELS (CORRECTION DU BUG) ---
+def get_current_prices(stocks, tickers):
+    """
+    Retourne un dictionnaire {ticker: prix} de manière fiable
+    """
+    current_prices = {}
+    last_row = stocks.iloc[-1]
+    
+    if isinstance(last_row, pd.Series):
+        # Plusieurs colonnes
+        for ticker in tickers:
+            current_prices[ticker] = float(last_row[ticker])
+    else:
+        # Une seule colonne (un seul ticker)
+        current_prices[tickers[0]] = float(last_row)
+    
+    return current_prices
+
 
 # ---------------------------
 # BARRE LATÉRALE (Structure "Wizard" 2 Étapes)
@@ -281,7 +311,7 @@ elif st.session_state.step == 2:
 
     if st.sidebar.button(T['tickers_modify_button']):
         st.session_state.step = 1
-        st.session_state.run_simulation = False # On réinitialise
+        st.session_state.run_simulation = False
         st.rerun()
 
     use_current_portfolio = st.sidebar.checkbox(T['compare_label'], key='compare_checkbox')
@@ -300,8 +330,6 @@ elif st.session_state.step == 2:
         num_ports = st.slider(T['ports_label'], 1000, 20000, 10000, 1000)
 
         current_inputs = []
-        monetary_values = []
-        
         tickers_in_form = st.session_state.locked_tickers
 
         if use_current_portfolio:
@@ -344,12 +372,7 @@ elif st.session_state.step == 2:
 col_img, col_titre = st.columns([1, 4])
 with col_img:
     try:
-        # Assurez-vous que l'image 'markowitz.jpg' est dans le même répertoire que votre script Streamlit
-        st.image(
-            "markowitz.jpg",
-            width=150,
-            caption="Harry Markowitz"
-        )
+        st.image("markowitz.jpg", width=150, caption="Harry Markowitz")
     except Exception as e:
         st.warning(f"Image 'markowitz.jpg' non trouvée. (Erreur: {e})")
 with col_titre:
@@ -373,13 +396,13 @@ num_ports = st.session_state.get('num_ports', 10000)
 
 try:
     with st.spinner(T['loading_data'].format(tickers=", ".join(tickers))):
-        stocks = yf.download(tickers, period=period, auto_adjust=True)['Close']
-        if isinstance(stocks, pd.Series):
-            stocks = stocks.to_frame(name=tickers[0])
+        stocks = download_stock_data(tickers, period)
     
     log_ret = np.log(stocks / stocks.shift(1)).dropna()
     num_assets = len(tickers)
-    current_prices = stocks.iloc[-1]
+    
+    # CORRECTION DU BUG : Utilisation de la fonction get_current_prices
+    current_prices_dict = get_current_prices(stocks, tickers)
 
 except Exception as e:
     st.error(T['loading_error'].format(e=e))
@@ -402,9 +425,9 @@ if use_current_portfolio and current_inputs:
         monetary_values = current_inputs
     
     elif input_mode == T['mode_shares']:
+        # CORRECTION DU BUG : Utilisation du dictionnaire de prix
         for i, ticker in enumerate(tickers):
-            # Gestion correcte si un seul ticker est sélectionné (current_prices est un float)
-            price = current_prices[ticker] if isinstance(current_prices, pd.Series) else current_prices
+            price = current_prices_dict[ticker]
             shares = current_inputs[i]
             monetary_values.append(shares * price)
     
@@ -494,29 +517,24 @@ fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
                        hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
                      )
 
-# --- DEBUT DE LA CORRECTION ---
 fig_scatter.update_layout(
     title=T['frontier_chart_title'],
     xaxis_title=T['frontier_xaxis'],
     yaxis_title=T['frontier_yaxis'],
     template='plotly_dark',
-    
-    # Suppression de la marge qui ne fonctionnait pas
-    
     legend=dict(
         title=T['legend_title'],
-        yanchor="top", y=0.98,      # Position INSIDE (en haut)
-        xanchor="left", x=0.02,     # Position INSIDE (à gauche)
-        bgcolor="rgba(0,0,0,0.7)",  # Fond semi-transparent
+        yanchor="top", y=0.98,
+        xanchor="left", x=0.02,
+        bgcolor="rgba(0,0,0,0.7)",
         bordercolor="white", borderwidth=1
     )
 )
-# --- FIN DE LA CORRECTION ---
 
 fig_scatter.add_shape(type='line', x0=0, y0=0,
                       x1=opt_vol, y1=opt_return,
                       line=dict(color="lime", width=2, dash="dot"),
-                      layer="below") # Mettre la ligne en dessous des points
+                      layer="below")
 
 fig_scatter.add_trace(go.Scatter(
     x=[opt_vol], 
@@ -544,10 +562,10 @@ st.plotly_chart(fig_scatter, use_container_width=True)
 with st.expander(T['extra_charts_header']):
     
     st.subheader(T['prices_chart_title'])
-    # Gestion du cas où 'stocks' n'a qu'une seule colonne
     data_to_plot = stocks[tickers] if isinstance(stocks, pd.DataFrame) else stocks
     fig_prices = px.line(data_to_plot, title=T['prices_chart_title'])
-    fig_prices.update_layout(template='plotly_dark', yaxis_title=T['prices_chart_yaxis'], xaxis_title=T['prices_chart_xaxis'], legend_title=T['prices_chart_legend'])
+    fig_prices.update_layout(template='plotly_dark', yaxis_title=T['prices_chart_yaxis'], 
+                             xaxis_title=T['prices_chart_xaxis'], legend_title=T['prices_chart_legend'])
     st.plotly_chart(fig_prices, use_container_width=True)
 
     st.subheader(T['prices_table_start'])
@@ -558,7 +576,6 @@ with st.expander(T['extra_charts_header']):
     st.divider()
 
     st.subheader(T['returns_table_start'])
-    # Gestion du cas où 'stocks' n'a qu'une seule colonne
     daily_pct_change = data_to_plot.pct_change().dropna() * 100
     st.dataframe(daily_pct_change.head(5).style.format("{:.2f}%"))
     
@@ -566,7 +583,6 @@ with st.expander(T['extra_charts_header']):
     st.dataframe(daily_pct_change.tail(5).style.format("{:.2f}%"))
 
 with st.expander(T['corr_header']):
-    # Gestion du cas où 'log_ret' n'a qu'une seule colonne
     if isinstance(log_ret, pd.DataFrame) and len(log_ret.columns) > 1:
         df_corr = log_ret[tickers].corr()
         fig_heatmap = px.imshow(df_corr, text_auto=True, color_continuous_scale='Mint',
