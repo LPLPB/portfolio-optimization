@@ -338,9 +338,11 @@ elif st.session_state.step == 2:
             if input_mode == T['mode_amount']:
                 st.write(T['mode_amount'] + ":")
                 for ticker in tickers_in_form:
+                    # Récupère la valeur précédente si elle existe
+                    prev_val = st.session_state.get(f"amount_{ticker}_val", 1000.0)
                     amount = st.number_input(
                         T['amount_label'].format(ticker=ticker),
-                        min_value=0.0, value=1000.0, step=10.0,
+                        min_value=0.0, value=prev_val, step=10.0,
                         key=f"amount_{ticker}"
                     )
                     current_inputs.append(amount)
@@ -348,15 +350,26 @@ elif st.session_state.step == 2:
             elif input_mode == T['mode_shares']:
                 st.write(T['mode_shares'] + ":")
                 for ticker in tickers_in_form:
+                    # Récupère la valeur précédente si elle existe
+                    prev_val = st.session_state.get(f"shares_{ticker}_val", 10.0)
                     shares = st.number_input(
                         T['shares_label'].format(ticker=ticker),
-                        min_value=0.0, value=10.0, step=0.1,
+                        min_value=0.0, value=prev_val, step=1.0,
                         key=f"shares_{ticker}"
                     )
                     current_inputs.append(shares)
 
         run_button = st.form_submit_button(T['run_button'])
         if run_button:
+            # Sauvegarde les valeurs pour la prochaine fois
+            if use_current_portfolio:
+                if input_mode == T['mode_amount']:
+                    for i, ticker in enumerate(tickers_in_form):
+                        st.session_state[f"amount_{ticker}_val"] = current_inputs[i]
+                elif input_mode == T['mode_shares']:
+                    for i, ticker in enumerate(tickers_in_form):
+                        st.session_state[f"shares_{ticker}_val"] = current_inputs[i]
+            
             st.session_state.run_simulation = True
             st.session_state.current_inputs = current_inputs
             st.session_state.input_mode = input_mode
