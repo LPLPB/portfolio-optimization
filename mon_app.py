@@ -667,4 +667,21 @@ if use_current_portfolio and current_return is not None:
 
     # Lignes du tableau pour chaque ticker
     for i, ticker in enumerate(tickers):
-        current_val =
+        current_val = monetary_values[i]
+        optimal_val = optimal_values[i]
+        diff = optimal_val - current_val
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.write(f"**{ticker}**")
+        with col2:
+            st.write(f"{current_val:,.2f}")
+        with col3:
+            st.write(f"{optimal_val:,.2f}")
+        with col4:
+            if diff > 0.01:
+                st.success(T['action_buy'].format(diff=diff))
+            elif diff < -0.01:
+                st.error(T['action_sell'].format(abs_diff=abs(diff)))
+            else:
+                st.info(T['action_hold'])
