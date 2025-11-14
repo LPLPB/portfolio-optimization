@@ -466,6 +466,9 @@ current_inputs = st.session_state.current_inputs
 
 # CORRECTION CRITIQUE : Vérification robuste des inputs
 if use_current_portfolio:
+    # Initialiser monetary_values comme liste vide
+    monetary_values = []
+    
     # Si current_inputs est vide mais qu'on a des valeurs dans portfolio_values, les utiliser
     if not current_inputs and 'portfolio_values' in st.session_state:
         current_inputs = [st.session_state.portfolio_values.get(ticker, 0.0) for ticker in tickers]
@@ -475,7 +478,7 @@ if use_current_portfolio:
             monetary_values = current_inputs
         
         elif input_mode == T['mode_shares']:
-            # CORRECTION DU BUG : Utilisation du dictionnaire de prix
+            # CORRECTION : Toujours calculer monetary_values pour le mode "shares"
             for i, ticker in enumerate(tickers):
                 price = current_prices_dict.get(ticker, 0.0)
                 shares = current_inputs[i] if i < len(current_inputs) else 0.0
@@ -564,6 +567,7 @@ fig_scatter = px.scatter(df_plot, x="Risk", y="Return", color="Sharpe",
                        hover_data={'Risk': ':.4f', 'Return': ':.4f', 'Sharpe': ':.4f'}
                      )
 
+# CORRECTION : Légende en bas à gauche
 fig_scatter.update_layout(
     title=T['frontier_chart_title'],
     xaxis_title=T['frontier_xaxis'],
@@ -571,10 +575,13 @@ fig_scatter.update_layout(
     template='plotly_dark',
     legend=dict(
         title=T['legend_title'],
-        yanchor="top", y=0.98,
-        xanchor="left", x=0.02,
+        yanchor="bottom",  # CORRECTION : Position en bas
+        y=0.01,           # CORRECTION : Plus proche du bas
+        xanchor="left", 
+        x=0.02,
         bgcolor="rgba(0,0,0,0.7)",
-        bordercolor="white", borderwidth=1
+        bordercolor="white", 
+        borderwidth=1
     )
 )
 
@@ -660,21 +667,4 @@ if use_current_portfolio and current_return is not None:
 
     # Lignes du tableau pour chaque ticker
     for i, ticker in enumerate(tickers):
-        current_val = monetary_values[i]
-        optimal_val = optimal_values[i]
-        diff = optimal_val - current_val
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.write(f"**{ticker}**")
-        with col2:
-            st.write(f"{current_val:,.2f}")
-        with col3:
-            st.write(f"{optimal_val:,.2f}")
-        with col4:
-            if diff > 0.01:
-                st.success(T['action_buy'].format(diff=diff))
-            elif diff < -0.01:
-                st.error(T['action_sell'].format(abs_diff=abs(diff)))
-            else:
-                st.info(T['action_hold'])
+        current_val = monetary_values[i
