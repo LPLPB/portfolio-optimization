@@ -339,9 +339,11 @@ elif st.session_state.step == 2:
         
         if input_mode == T['mode_amount']:
             st.sidebar.write(T['mode_amount'] + ":")
-            for ticker in tickers_in_form:
-                # Utiliser st.session_state pour stocker les valeurs
+            for i, ticker in enumerate(tickers_in_form):
+                # Utiliser une clé unique pour chaque input
                 key = f"amount_{ticker}"
+                
+                # Initialiser la valeur si elle n'existe pas
                 if key not in st.session_state:
                     st.session_state[key] = 1000.0
                 
@@ -350,16 +352,17 @@ elif st.session_state.step == 2:
                     min_value=0.0, 
                     value=st.session_state[key], 
                     step=10.0,
-                    key=key
+                    key=f"input_{key}"  # Clé différente pour le widget
                 )
                 current_inputs.append(amount)
-                st.session_state[key] = amount
         
         elif input_mode == T['mode_shares']:
             st.sidebar.write(T['mode_shares'] + ":")
-            for ticker in tickers_in_form:
-                # Utiliser st.session_state pour stocker les valeurs
+            for i, ticker in enumerate(tickers_in_form):
+                # Utiliser une clé unique pour chaque input
                 key = f"shares_{ticker}"
+                
+                # Initialiser la valeur si elle n'existe pas
                 if key not in st.session_state:
                     st.session_state[key] = 10.0
                 
@@ -368,16 +371,23 @@ elif st.session_state.step == 2:
                     min_value=0.0, 
                     value=st.session_state[key], 
                     step=1.0,
-                    key=key
+                    key=f"input_{key}"  # Clé différente pour le widget
                 )
                 current_inputs.append(shares)
-                st.session_state[key] = shares
 
     # Bouton de lancement en dehors de tout formulaire
     run_button = st.sidebar.button(T['run_button'])
     if run_button:
-        if use_current_portfolio and not current_inputs:
-            current_inputs = [0.0] * len(tickers_in_form)
+        if use_current_portfolio:
+            # Sauvegarder les valeurs actuelles dans st.session_state
+            if input_mode == T['mode_amount']:
+                for i, ticker in enumerate(tickers_in_form):
+                    key = f"amount_{ticker}"
+                    st.session_state[key] = current_inputs[i] if i < len(current_inputs) else 1000.0
+            elif input_mode == T['mode_shares']:
+                for i, ticker in enumerate(tickers_in_form):
+                    key = f"shares_{ticker}"
+                    st.session_state[key] = current_inputs[i] if i < len(current_inputs) else 10.0
         
         st.session_state.run_simulation = True
         st.session_state.current_inputs = current_inputs
