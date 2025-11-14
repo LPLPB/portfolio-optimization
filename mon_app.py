@@ -273,6 +273,8 @@ if 'run_simulation' not in st.session_state:
     st.session_state.run_simulation = False
 if 'current_inputs' not in st.session_state:
     st.session_state.current_inputs = []
+if 'input_values' not in st.session_state:
+    st.session_state.input_values = {}
 
 # --- ÉTAPE 1 : Sélection ---
 if st.session_state.step == 1:
@@ -324,61 +326,66 @@ elif st.session_state.step == 2:
             key='input_mode_radio'
         )
     
-    with st.sidebar.form('params_form'):
-        st.sidebar.subheader(T['sim_params_header'])
-        period = st.text_input(T['period_label'], "504d")
-        num_ports = st.slider(T['ports_label'], 1000, 20000, 10000, 1000)
+    # SUPPRIMER LE FORMULAIRE et utiliser des inputs normaux
+    st.sidebar.subheader(T['sim_params_header'])
+    period = st.sidebar.text_input(T['period_label'], "504d")
+    num_ports = st.sidebar.slider(T['ports_label'], 1000, 20000, 10000, 1000)
 
-        tickers_in_form = st.session_state.locked_tickers
-        form_inputs = {}  # Dictionnaire pour stocker les inputs du formulaire
+    tickers_in_form = st.session_state.locked_tickers
+    current_inputs = []
 
-        if use_current_portfolio:
-            st.sidebar.header(T['current_header'])
-            
-            if input_mode == T['mode_amount']:
-                st.write(T['mode_amount'] + ":")
-                for ticker in tickers_in_form:
-                    # Récupère la valeur précédente si elle existe
-                    prev_val = st.session_state.get(f"amount_{ticker}_val", 1000.0)
-                    amount = st.number_input(
-                        T['amount_label'].format(ticker=ticker),
-                        min_value=0.0, value=prev_val, step=10.0,
-                        key=f"amount_{ticker}"  # CORRECTION : Clé stable sans "_form"
-                    )
-                    form_inputs[ticker] = amount
-            
-            elif input_mode == T['mode_shares']:
-                st.write(T['mode_shares'] + ":")
-                for ticker in tickers_in_form:
-                    # Récupère la valeur précédente si elle existe
-                    prev_val = st.session_state.get(f"shares_{ticker}_val", 10.0)
-                    shares = st.number_input(
-                        T['shares_label'].format(ticker=ticker),
-                        min_value=0.0, value=prev_val, step=1.0,
-                        key=f"shares_{ticker}"  # CORRECTION : Clé stable sans "_form"
-                    )
-                    form_inputs[ticker] = shares
+    if use_current_portfolio:
+        st.sidebar.header(T['current_header'])
+        
+        if input_mode == T['mode_amount']:
+            st.sidebar.write(T['mode_amount'] + ":")
+            for ticker in tickers_in_form:
+                # Utiliser st.session_state pour stocker les valeurs
+                key = f"amount_{ticker}"
+                if key not in st.session_state:
+                    st.session_state[key] = 1000.0
+                
+                amount = st.sidebar.number_input(
+                    T['amount_label'].format(ticker=ticker),
+                    min_value=0.0, 
+                    value=st.session_state[key], 
+                    step=10.0,
+                    key=key
+                )
+                current_inputs.append(amount)
+                st.session_state[key] = amount
+        
+        elif input_mode == T['mode_shares']:
+            st.sidebar.write(T['mode_shares'] + ":")
+            for ticker in tickers_in_form:
+                # Utiliser st.session_state pour stocker les valeurs
+                key = f"shares_{ticker}"
+                if key not in st.session_state:
+                    st.session_state[key] = 10.0
+                
+                shares = st.sidebar.number_input(
+                    T['shares_label'].format(ticker=ticker),
+                    min_value=0.0, 
+                    value=st.session_state[key], 
+                    step=1.0,
+                    key=key
+                )
+                current_inputs.append(shares)
+                st.session_state[key] = shares
 
-        run_button = st.form_submit_button(T['run_button'])
-        if run_button:
-            # Convertir le dictionnaire en liste dans l'ordre des tickers
-            current_inputs = [form_inputs.get(ticker, 0.0) for ticker in tickers_in_form] if form_inputs else []
-            
-            # Sauvegarde les valeurs pour la prochaine fois
-            if use_current_portfolio and current_inputs:
-                if input_mode == T['mode_amount']:
-                    for i, ticker in enumerate(tickers_in_form):
-                        st.session_state[f"amount_{ticker}_val"] = current_inputs[i]
-                elif input_mode == T['mode_shares']:
-                    for i, ticker in enumerate(tickers_in_form):
-                        st.session_state[f"shares_{ticker}_val"] = current_inputs[i]
-            
-            st.session_state.run_simulation = True
-            st.session_state.current_inputs = current_inputs
-            st.session_state.input_mode = input_mode
-            st.session_state.use_current_portfolio = use_current_portfolio
-            st.session_state.period = period
-            st.session_state.num_ports = num_ports
+    # Bouton de lancement en dehors de tout formulaire
+    run_button = st.sidebar.button(T['run_button'])
+    if run_button:
+        if use_current_portfolio and not current_inputs:
+            current_inputs = [0.0] * len(tickers_in_form)
+        
+        st.session_state.run_simulation = True
+        st.session_state.current_inputs = current_inputs
+        st.session_state.input_mode = input_mode
+        st.session_state.use_current_portfolio = use_current_portfolio
+        st.session_state.period = period
+        st.session_state.num_ports = num_ports
+        st.rerun()
 
 
 # ---------------------------
@@ -458,7 +465,7 @@ if use_current_portfolio and current_inputs:
 
     current_return = np.sum((log_ret.mean().values * current_weights_np) * 252)
     current_risk = np.sqrt(np.dot(current_weights_np.T, np.dot(log_ret.cov().values * 252, current_weights_np)))
-    current_sharpe = current_return / current_risk if current_risk > 1e-10 else 0  # CORRECTION : Évite division par zéro
+    current_sharpe = current_return / current_risk if current_risk > 1e-10 else 0
 
 
 with st.spinner(T['running_sim'].format(num_ports=num_ports)):
