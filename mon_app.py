@@ -649,7 +649,7 @@ with st.expander(T['corr_header']):
         st.info("La matrice de corrélation nécessite au moins 2 actifs.")
 
 # --- CONCLUSION ET PLAN D'ACTION ---
-if use_current_portfolio and current_return is not None:
+if use_current_portfolio and current_return is not None and total_portfolio_value > 0:
     st.header(T['conclusion_header'])
     st.write(T['conclusion_subheader'].format(value=total_portfolio_value))
 
