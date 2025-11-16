@@ -5,6 +5,22 @@ import yfinance as yf
 import plotly.express as px
 import plotly.graph_objects as go
 
+# --- AUTO-CLEAN AU DÉMARRAGE ---
+import datetime
+
+# Vérifie si l'app n'a pas été utilisée depuis longtemps
+if 'last_activity' in st.session_state:
+    last_activity = st.session_state.last_activity
+    time_diff = datetime.datetime.now() - last_activity
+    if time_diff.total_seconds() > 3600:  # 1 heure d'inactivité
+        st.cache_data.clear()
+        st.success("🔄 Cache nettoyé automatiquement après période d'inactivité")
+else:
+    st.session_state.last_activity = datetime.datetime.now()
+
+# Met à jour le timestamp à chaque interaction
+st.session_state.last_activity = datetime.datetime.now()
+
 # --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="Portfolio Optimizer", page_icon="📊", layout="wide")
 
