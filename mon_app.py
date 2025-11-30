@@ -181,7 +181,7 @@ TRANSLATIONS = {
         'col_action_req': "Action Requise",
         'action_buy': "🟢 ACHETER {diff:,.2f}",
         'action_sell': "🔴 VENDRE {abs_diff:,.2f}",
-        'action_hold': "⚪ CONSERVER"
+        'action_hold': "⚪ CONSERVER",
         'disclaimer_title': "⚠️ Avertissement sur l'Investissement",
         'disclaimer_text': "Cette application est fournie à des fins **éducatives et informatives uniquement**. Les résultats de l'optimisation de portefeuille sont basés sur des données historiques et des modèles théoriques (Théorie Moderne du Portefeuille). **Elle ne constitue en aucun cas un conseil financier, d'investissement ou de trading.** Effectuez toujours vos propres recherches et consultez un professionnel financier qualifié avant de prendre toute décision d'investissement.",
         'sidebar_header': "Paramètres de l'Optimisation",
