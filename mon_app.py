@@ -102,6 +102,10 @@ TRANSLATIONS = {
         'action_buy': "🟢 BUY {diff:,.2f}",
         'action_sell': "🔴 SELL {abs_diff:,.2f}",
         'action_hold': "⚪ HOLD"
+        'linkedin_profile': "LinkedIn Profile",
+        'disclaimer_title': "⚠️ Investment Disclaimer",
+        'disclaimer_text': "This application is for **educational and informational purposes only**. The results of the portfolio optimization are based on historical data and theoretical models (Modern Portfolio Theory). **It does not constitute financial, investment, or trading advice.** Always conduct your own research and consult a qualified financial professional before making any investment decisions.",
+        'sidebar_header': "Optimization Parameters",
     },
     'fr': {
         'title': "Optimiseur de Portefeuille",
@@ -179,6 +183,9 @@ TRANSLATIONS = {
         'action_buy': "🟢 ACHETER {diff:,.2f}",
         'action_sell': "🔴 VENDRE {abs_diff:,.2f}",
         'action_hold': "⚪ CONSERVER"
+        'disclaimer_title': "⚠️ Avertissement sur l'Investissement",
+        'disclaimer_text': "Cette application est fournie à des fins **éducatives et informatives uniquement**. Les résultats de l'optimisation de portefeuille sont basés sur des données historiques et des modèles théoriques (Théorie Moderne du Portefeuille). **Elle ne constitue en aucun cas un conseil financier, d'investissement ou de trading.** Effectuez toujours vos propres recherches et consultez un professionnel financier qualifié avant de prendre toute décision d'investissement.",
+        'sidebar_header': "Paramètres de l'Optimisation",
     }
 }
 
@@ -444,6 +451,9 @@ with col_titre:
     st.markdown(f"{T['created_by']} | [LinkedIn](https://www.linkedin.com/in/leopaullaisne)")
     st.markdown(f"*{T['subtitle']}*")
 
+st.warning(T['disclaimer_title'], icon="⚠️")
+st.markdown(T['disclaimer_text'])
+st.divider()
 
 if not st.session_state.run_simulation:
     st.info(T['run_info'])
