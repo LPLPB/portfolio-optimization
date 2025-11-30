@@ -101,8 +101,7 @@ TRANSLATIONS = {
         'col_action_req': "Action Required",
         'action_buy': "🟢 BUY {diff:,.2f}",
         'action_sell': "🔴 SELL {abs_diff:,.2f}",
-        'action_hold': "⚪ HOLD"
-        'linkedin_profile': "LinkedIn Profile",
+        'action_hold': "⚪ HOLD" ,
         'disclaimer_title': "⚠️ Investment Disclaimer",
         'disclaimer_text': "This application is for **educational and informational purposes only**. The results of the portfolio optimization are based on historical data and theoretical models (Modern Portfolio Theory). **It does not constitute financial, investment, or trading advice.** Always conduct your own research and consult a qualified financial professional before making any investment decisions.",
         'sidebar_header': "Optimization Parameters",
